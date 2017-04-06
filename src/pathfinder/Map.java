@@ -1,5 +1,6 @@
 package pathfinder;
 
+import java.awt.*;
 import java.io.*;
 import java.util.HashMap;
 
@@ -26,7 +27,27 @@ public class Map {
         return addresses.get(address);
     }
 
-    // takes the name of a file in the root directory
+    private Color backgroundColor = Color.GREEN;
+    private Color nodeColor = Color.BLACK;
+    private Color roadColor = Color.GRAY;
+    // draws the map onto the given Graphics2D object todo: assurances, better stuff, scrolling
+    public void draw(Graphics drawFrame) {
+        ((Graphics2D) drawFrame).setStroke(new BasicStroke(3));
+        drawFrame.setColor(backgroundColor);
+        drawFrame.fillRect(0, 0, 200, 200);
+        for (LocationNode address : addresses.values()) {
+            // draw node
+            drawFrame.setColor(nodeColor);
+            drawFrame.fillOval((int) address.getX() - 5, (int) address.getY() - 5, 10, 10);
+            drawFrame.setColor(roadColor);
+            // draw edges
+            for (LocationNode neighbor : address.getNeighbors()) {
+                drawFrame.drawLine((int) address.getX(), (int) address.getY(), (int) neighbor.getX(), (int) neighbor.getY());
+            }
+        }
+    }
+
+    // takes the name of a file in the root directory todo: rename loadMapFromFile
     // constructs address/node table from data in given file
     // throws IOException if file cannot be found
     // throws IllegalArgumentException if contents of file cannot be parsed correctly

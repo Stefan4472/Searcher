@@ -2,6 +2,10 @@ package pathfinder;
 
 import searcher.Searcher;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -10,7 +14,7 @@ import java.util.List;
 /**
  * Created by Stefan on 4/6/2017.
  */
-public class Main {
+public class Main extends JPanel {
 
     public static void main(String[] args) {
         if (args.length != 3) {
@@ -26,12 +30,22 @@ public class Main {
             List<LocationNode> path = searcher.runSearch(start);
             if (path == null) {
                 System.out.println("No path found");
-            } else {
+            } else { // display GUI
                 System.out.println(listToArray(path));
+                displayMap(map);
             }
         } catch (IOException e) {
             System.out.println("File not found");
         }
+    }
+
+    private static void displayMap(Map toDisplay) {
+        JFrame window = new JFrame("Stefan's Pathfinder!");
+        window.getContentPane().add(new MapDisplay(toDisplay));
+        window.pack();
+        window.setLocationByPlatform(true);
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setVisible(true);
     }
 
     private static String listToArray(List<?> list) {
