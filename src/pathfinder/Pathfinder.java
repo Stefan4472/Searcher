@@ -1,3 +1,7 @@
+package pathfinder;
+
+import pathfinder.LocationNode;
+
 import java.util.Collections;
 import java.util.List;
 

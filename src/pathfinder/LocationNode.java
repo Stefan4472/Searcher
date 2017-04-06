@@ -1,7 +1,7 @@
-import java.util.Collection;
+package pathfinder;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.List;
 
 /**
  * A Node used in

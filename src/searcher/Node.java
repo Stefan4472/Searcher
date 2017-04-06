@@ -1,5 +1,4 @@
-import java.util.LinkedList;
-import java.util.List;
+package searcher;
 
 /**
  * The Searcher finds paths through a series of Nodes that must extend this abstract class.
