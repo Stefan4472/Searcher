@@ -4,25 +4,24 @@ import pathfinder.LocationNode;
 import searcher.SearchFramework;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Extends SearchFramework and provides a "map" of nodes with coordinates and addresses
  * to be searched.
  */
-public class Pathfinder implements SearchFramework<LocationNode> {
+public class Pathfinder implements SearchFramework<LocationNode> { // todo: consolidate with Map.java
 
-    private LocationNode startNode;
     private LocationNode goalNode;
 
-    public Pathfinder(LocationNode startNode, LocationNode goalNode) { // todo: we need an index of addresses
-        this.startNode = startNode;
+    public Pathfinder(LocationNode goalNode) {
         this.goalNode = goalNode;
     }
 
     @Override
     public List<LocationNode> getNeighbors(LocationNode node) {
-        return Collections.list(node.getNeighbors()); // todo: improve
+        return new LinkedList<>(node.getNeighbors()); // todo: improve? avoid object creation
     }
 
     @Override

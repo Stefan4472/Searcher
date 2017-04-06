@@ -12,22 +12,25 @@ import java.util.List;
  */
 public class Main {
 
-    private static String GOAL_STATE = "GOAL!";
-
     public static void main(String[] args) {
+        if (args.length != 3) {
+            System.out.println("Usage is [text file] [start address] [goal address]");
+            System.exit(0);
+        }
         try {
-            Map map = new Map("mapfile.txt");
-//            LocationNode start = buildPath();
-//            Pathfinder map =
-//                    Searcher searcher = new Searcher(start, GOAL_STATE);
-//            List<LocationNode> path = searcher.runSearch();
-//            if (path == null) {
-//                System.out.println("No path found");
-//            } else {
-//                System.out.println(listToArray(path));
-//            }
+            Map map = new Map(args[0]);
+            LocationNode start = map.getNode(args[1]);
+            LocationNode goal = map.getNode(args[2]);
+            Pathfinder pathfinder = new Pathfinder(goal);
+            Searcher<LocationNode> searcher = new Searcher<>(pathfinder);
+            List<LocationNode> path = searcher.runSearch(start);
+            if (path == null) {
+                System.out.println("No path found");
+            } else {
+                System.out.println(listToArray(path));
+            }
         } catch (IOException e) {
-
+            System.out.println("File not found");
         }
     }
 

@@ -17,9 +17,14 @@ import java.util.HashMap;
 public class Map {
 
     // stores address, node pairs
-    private HashMap<String, LocationNode> addresses; // todo: addAddress method
+    private HashMap<String, LocationNode> addresses; // todo: addAddress method, constructor that builds the file from scratch
     // stores number of edges
     private int numEdges;
+
+    // returns node with specified address
+    public LocationNode getNode(String address) {
+        return addresses.get(address);
+    }
 
     // takes the name of a file in the root directory
     // constructs address/node table from data in given file
@@ -44,6 +49,7 @@ public class Map {
                     node = addresses.get(line_tokens[0]);
                     node2 = addresses.get(line_tokens[1]);
                     node.addNeighbor(node2, Float.parseFloat(line_tokens[2]));
+                    addresses.put(line_tokens[0], node);
                 }
             }
             br.close();
