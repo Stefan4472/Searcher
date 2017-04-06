@@ -4,81 +4,72 @@ import java.util.*;
  * Implements an A* search to search through the nodes starting with startNode.
  * Fully visited nodes are put in the closed Hashtable. todo: explanation!
  */
-public class Searcher {
+public class Searcher<T extends Node> {
 
+    // provides "context" to the nodes the Searcher is traversing
+    private SearchFramework<T> searchContext;
     // stores nodes that have been removed from the priority queue
-    private Hashtable<Node, Float> visitedNodes;
+    private Hashtable<T, Float> visitedNodes;
     // stores nodes that have been found but not yet visited
-    private PriorityQueue<Node> unVisitedNodes;
+    private PriorityQueue<T> unVisitedNodes;
     // comparator used in PriorityQueue--simply compares node priority vals
-    private Comparator<Node> queueComparator = new Comparator<Node>() {
+    private Comparator<T> queueComparator = new Comparator<T>() {
         @Override
-        public int compare(Node o1, Node o2) { // todo: correct value? refine?
+        public int compare(T o1, T o2) {
             return Float.compare(o1.getPriorityVal(), o2.getPriorityVal());
         }
     };
-    // starting node
-    private Node startNode;
-    // what we're looking for in the "winning" node's getData()
-    private String goalState;
 
-    public Searcher(Node startNode, String goalState) {
-        this.startNode = startNode;
-        this.startNode.setPriorityVal(0);
-        this.goalState = goalState;
+    // constructor requires only a searchFramework
+    public Searcher(SearchFramework<T> searchContext) {
+        this.searchContext = searchContext;
     }
 
-    // runs search, returning a LinkedList of successive nodes
+    // runs search from startNode. Returns a List of successive nodes.
     // list will be empty if no solution found
-    public List<Node> runSearch() {
+    public List<T> runSearch(T startNode) {
         visitedNodes = new Hashtable<>();
         unVisitedNodes = new PriorityQueue<>(1, queueComparator);
         unVisitedNodes.add(startNode);
-        Node end = search();
+        T end = search();
         return retracePath(end);
     }
 
     // recursively calls search until victory or defeat
     // if victory, returns goal node. if defeat, returns null
-    private Node search() {
+    private T search() {
         if (unVisitedNodes.size() == 0) {
             return null;
         } else {
             // get min node
-            Node next_min = unVisitedNodes.poll();
+            T next_min = unVisitedNodes.poll();
             if (visitedNodes.containsKey(next_min)) { // discard if already visited
                 return search();
-            } else if (next_min.getData().equals(goalState)) {
+            } else if (searchContext.isGoal(next_min)) {
                 return next_min;
             } else {
-                for (Node neighbor : next_min.getNeighbors()) {
-                    if (!visitedNodes.containsKey(neighbor)) { // todo: account for possible back edges
-                        neighbor.setPriorityVal(next_min.getPriorityVal() + neighbor.getEdgeCost() + getHeuristic(neighbor));
-                        neighbor.setCost(next_min.getCost() + neighbor.getEdgeCost());
+                for (T neighbor : searchContext.getNeighbors(next_min)) {
+                    if (!visitedNodes.containsKey(neighbor)) { // todo: account for possible back edges. quick way to check equality
+                        neighbor.setPriorityVal(next_min.getPriorityVal() + searchContext.getEdgeCost(next_min, neighbor)
+                                + searchContext.getHeuristic(neighbor));
                         neighbor.setParent(next_min);
                         unVisitedNodes.add(neighbor);
                     }
                 }
-                visitedNodes.put(next_min, next_min.getCost());
+                visitedNodes.put(next_min, next_min.getPriorityVal());
                 return search();
             }
         }
     }
 
     // retraces path to get to this node and returns it in a list
-    private List<Node> retracePath(Node endNode) {
-        List<Node> path = new LinkedList<>();
-        Node parent = endNode;
+    private List<T> retracePath(T endNode) {
+        List<T> path = new LinkedList<>();
+        T parent = endNode;
         while (parent != null) {
             path.add(0, parent);
-            parent = parent.getParent();
+            parent = (T) parent.getParent();
         }
         return path;
     }
-
-    // todo: make way better
-    private float getHeuristic(Node node) {
-        return 1.0f;
-    }
-
 }

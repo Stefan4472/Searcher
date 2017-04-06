@@ -2,57 +2,25 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Basic node class. Edge cost, list of neighbors, priority value, and parent.
- * This will be abstracted.
+ * The Searcher finds paths through a series of Nodes that must extend this abstract class.
+ * This class provides Searcher functionality: it stores the node's priority value, used
+ * in the search algorithm, and it records the node's parent, used to retrace the algorithm's
+ * steps.
  */
-public class Node {
+public abstract class Node {
 
-    private float edgeCost;
-    private List<Node> neighbors;
     private float priorityVal;
-    // total edge costs
-    private float cost;
     private Node parent;
-    private String data;
 
-    public Node(String data, float edgeCost) {
-        this.data = data;
-        this.edgeCost = edgeCost;
-    }
-
-    public void addNeighbor(Node newNeighbor) {
-        if (neighbors == null) {
-            neighbors = new LinkedList<Node>();
-        }
-        neighbors.add(newNeighbor);
+    public Node() {
     }
 
     public void setPriorityVal(float priorityVal) {
         this.priorityVal = priorityVal;
     }
 
-    public float getCost() {
-        return cost;
-    }
-
-    public void setCost(float cost) {
-        this.cost = cost;
-    }
-
     public float getPriorityVal() {
         return priorityVal;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public float getEdgeCost() {
-        return edgeCost;
-    }
-
-    public List<Node> getNeighbors() {
-        return neighbors;
     }
 
     public Node getParent() {
@@ -61,10 +29,5 @@ public class Node {
 
     public void setParent(Node parent) {
         this.parent = parent;
-    }
-
-    @Override
-    public String toString() {
-        return data + "(" + edgeCost + ")";
     }
 }
