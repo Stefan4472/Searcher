@@ -1,6 +1,7 @@
 package pathfinder;
 
 import pathfinder.LocationNode;
+import searcher.SearchFramework;
 
 import java.util.Collections;
 import java.util.List;

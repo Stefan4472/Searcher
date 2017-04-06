@@ -1,5 +1,7 @@
 package pathfinder;
 
+import searcher.Node;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 
