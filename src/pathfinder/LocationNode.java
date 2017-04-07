@@ -70,11 +70,11 @@ public class LocationNode extends Node {
                         (getY() - node2.getY()) * (getY() - node2.getY()));
     }
 
-    public float getX() {
+    public int getX() {
         return x;
     }
 
-    public float getY() {
+    public int getY() {
         return y;
     }
 

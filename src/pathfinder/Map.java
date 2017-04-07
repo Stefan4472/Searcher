@@ -1,13 +1,17 @@
 package pathfinder;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.io.*;
-import java.util.HashMap;
+import java.util.*;
+import java.util.List;
 
 /**
- * Represents a geographical map in coordinate space. Stores a table of all addresses with their corresponding
- * LocationNodes. Each edge is one-way and defined by the two LocationNodes it spans--it has a name and a
- * speedlimit (used in calculating edge costs). Can be read in from a file (in a determined format) and saved to a file.
+ * Represents a street map in coordinate space. Each node is indexed by its address in the addresses HashMap.
+ * Each edge is one-way and defined by the two LocationNodes it spans. Each edge has a name and a
+ * speedlimit (used in calculating edge costs).
+ *
+ * The Map can be read in from a file (in a determined format) and saved to a file.
  *
  * Map File Format:
  * First line states number of nodes (n)
@@ -21,6 +25,10 @@ public class Map {
     private HashMap<String, LocationNode> addresses = new HashMap<>();
     // number of edges
     private int numEdges;
+
+    // empty constructor
+    public Map() {
+    }
 
     // returns node with specified address
     public LocationNode getNode(String address) {
@@ -49,7 +57,7 @@ public class Map {
         }
     }
 
-    // takes the name of a file in the root directory todo: rename loadMapFromFile
+    // takes the name of a file in the root directory todo: rename static loadMapFromFile?
     // constructs address/node table from data in given file
     // throws IOException if file cannot be found
     // throws IllegalArgumentException if contents of file cannot be parsed correctly
@@ -94,7 +102,7 @@ public class Map {
 
     // writes address-node pairs to file followed by all edges with edge costs
     // throws IOException if there was an error writing the file
-    public boolean saveToFile(String fileName) throws IOException { // todo: finish
+    public boolean saveToFile(String fileName) throws IOException {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true));
             writer.write(addresses.size() + "\n");
@@ -124,20 +132,39 @@ public class Map {
     private Color backgroundColor = Color.GREEN;
     private Color nodeColor = Color.BLACK;
     private Color roadColor = Color.GRAY;
-    // draws the map onto the given Graphics2D object todo: assurances, better stuff, scrolling
-    public void draw(Graphics drawFrame) {
-        ((Graphics2D) drawFrame).setStroke(new BasicStroke(3));
+    private Color pathColor = Color.BLUE;
+
+    // The draw method draws a specified portion (clip) of the map onto the given Graphics object.
+    // The clip is a rectangle, and will be translated to (0,0) of the drawFrame.
+    // e.g. the clip is (70, 100, 100, 150). This method will draw any nodes and edges that fall
+    // within the boundaries of the clip, translating them to (0,0). // todo: clips
+    // The path stack is a list of adjacent nodes that define a path in the order given.
+    // Edges between the nodes in this list will be drawn in pathColor.
+    public void drawClip(Graphics drawFrame, Rectangle2D clip, List<LocationNode> path) {
+        // draw background
         drawFrame.setColor(backgroundColor);
         drawFrame.fillRect(0, 0, 200, 200);
+
+        ((Graphics2D) drawFrame).setStroke(new BasicStroke(1));
+
+        // traverse the nodes
         for (LocationNode address : addresses.values()) {
             // draw node
             drawFrame.setColor(nodeColor);
-            drawFrame.fillOval((int) address.getX() - 5, (int) address.getY() - 5, 10, 10);
-            drawFrame.setColor(roadColor);
+            drawFrame.fillOval(address.getX() - 5, address.getY() - 5, 10, 10);
+
             // draw edges
+            drawFrame.setColor(roadColor);
             for (LocationNode neighbor : address.getNeighbors()) {
-                drawFrame.drawLine((int) address.getX(), (int) address.getY(), (int) neighbor.getX(), (int) neighbor.getY());
+                drawFrame.drawLine(address.getX(), address.getY(), neighbor.getX(), neighbor.getY());
             }
+        }
+
+        // draw the edges between the nodes specified in path
+        drawFrame.setColor(pathColor);
+        ((Graphics2D) drawFrame).setStroke(new BasicStroke(2));
+        for (int i = 0; i < path.size() - 1; i++) {
+            drawFrame.drawLine(path.get(i).getX(), path.get(i).getY(), path.get(i + 1).getX(), path.get(i + 1).getY());
         }
     }
 }

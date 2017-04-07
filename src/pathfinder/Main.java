@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * Created by Stefan on 4/6/2017.
@@ -32,16 +33,18 @@ public class Main extends JPanel {
                 System.out.println("No path found");
             } else { // display GUI
                 System.out.println(listToArray(path));
-                displayMap(map);
+                displayMap(map, path);
             }
         } catch (IOException e) {
             System.out.println("File not found");
         }
     }
 
-    private static void displayMap(Map toDisplay) {
+    private static void displayMap(Map toDisplay, List<LocationNode> pathToDisplay) {
         JFrame window = new JFrame("Stefan's Pathfinder!");
-        window.getContentPane().add(new MapDisplay(toDisplay));
+        MapDisplay display = new MapDisplay(toDisplay);
+        display.setPath(pathToDisplay);
+        window.getContentPane().add(display);
         window.pack();
         window.setLocationByPlatform(true);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
