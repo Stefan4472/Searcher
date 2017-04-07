@@ -13,39 +13,61 @@ import java.util.Set;
 public class LocationNode extends Node {
 
     // coordinates of node
-    private float x, y;
+    private int x, y;
     // node's address
     private String address;
-    // speed limit at this node todo: implement
-    private float speedLimit;
-    // nodes accessible via this node. Key is neighbor, value is distance.
-    private HashMap<LocationNode, Float> neighbors;
+    // nodes accessible via this node. Key is neighbor, value is edge.
+    private HashMap<LocationNode, Edge> neighbors;
 
-    public LocationNode(float x, float y, String address) {
+    // creates node with given address and coordinates
+    public LocationNode(String address, int x, int y) {
+        this.address = address;
         this.x = x;
         this.y = y;
-        this.address = address;
         neighbors = new HashMap<>(1);
     }
 
-    public void addNeighbor(LocationNode neighbor, float edgeCost) throws NullPointerException {
+    // adds the given node as a neighbor. This means adding it to the map of neighbors
+    // along with the given edge, which stores useful data
+    public void addNeighbor(LocationNode neighbor, Edge edge) throws NullPointerException {
         if (neighbor == null) {
             throw new NullPointerException("Neighbor can't be null");
         } else {
-            neighbors.put(neighbor, edgeCost);
+            neighbors.put(neighbor, edge);
         }
     }
 
+    // returns set of all LocationNodes that this node has edges to
     public Set<LocationNode> getNeighbors() {
         return neighbors.keySet();
     }
 
-    public float getEdgeCost(LocationNode neighbor) {
-        if (neighbors.containsKey(neighbor)) {
-            return neighbors.get(neighbor);
+    // returns edge to neighbor. Throws NullPointerException if there is no edge to the specified neighbor
+    public Edge getEdge(LocationNode neighbor) {
+        if (!neighbors.containsKey(neighbor)) {
+            throw new NullPointerException("No edge between this node and given neighbor");
         } else {
-            return Float.MAX_VALUE;
+            return neighbors.get(neighbor);
         }
+    }
+
+    // returns edge cost from this node to the given one
+    // edge cost is calculated as the time it takes to get to the neighbor,
+    // i.e. distance / speedLimit of the edge
+    public float getEdgeCost(LocationNode neighbor) {
+        Edge edge = neighbors.get(neighbor);
+        if (edge == null) {
+            return Float.MAX_VALUE;
+        } else {
+            return edge.getDistance() / edge.getSpeedLimit();
+        }
+    }
+
+    // calculates straight-line distance between given nodes
+    public float distanceTo(LocationNode node2) {
+        return (float) Math.sqrt(
+                (double) (getX() - node2.getX()) * (getX() - node2.getX()) +
+                        (getY() - node2.getY()) * (getY() - node2.getY()));
     }
 
     public float getX() {
@@ -70,7 +92,7 @@ public class LocationNode extends Node {
         }
     }
 
-    @Override
+    @Override // creates the String representation of the node
     public String toString() {
         return address + " " + x + " " + y;
     }
