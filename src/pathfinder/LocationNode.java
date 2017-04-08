@@ -55,12 +55,7 @@ public class LocationNode extends Node {
     // edge cost is calculated as the time it takes to get to the neighbor,
     // i.e. distance / speedLimit of the edge
     public float getEdgeCost(LocationNode neighbor) {
-        Edge edge = neighbors.get(neighbor);
-        if (edge == null) {
-            return Float.MAX_VALUE;
-        } else {
-            return edge.getDistance() / edge.getSpeedLimit();
-        }
+        return timeTo(neighbor);
     }
 
     // calculates straight-line distance between given nodes
@@ -68,6 +63,17 @@ public class LocationNode extends Node {
         return (float) Math.sqrt(
                 (double) (getX() - node2.getX()) * (getX() - node2.getX()) +
                         (getY() - node2.getY()) * (getY() - node2.getY()));
+    }
+
+    // calculates time (in seconds) to travel to given node along edge between them
+    // returns Integer.MAX_VALUE if no such path exists
+    public float timeTo(LocationNode node2) {
+        Edge edge = neighbors.get(node2);
+        if (edge == null) {
+            return Integer.MAX_VALUE;
+        } else {
+            return edge.getDistance() / edge.getSpeedLimit();
+        }
     }
 
     public int getX() {
