@@ -43,7 +43,7 @@ public class Main extends JPanel {
     private static void displayMap(Map toDisplay, List<LocationNode> pathToDisplay) {
         JFrame window = new JFrame("Stefan's Pathfinder!");
         MapDisplay display = new MapDisplay(toDisplay);
-        display.setPath(pathToDisplay);
+        display.startNavigation(pathToDisplay);
         window.getContentPane().add(display);
         window.pack();
         window.setLocationByPlatform(true);

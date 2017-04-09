@@ -26,6 +26,8 @@ public class MapDisplay extends JPanel {
 
     private float pathDistance, pathTime;
 
+    // set to true when destination of path has been reached (if navigating)
+    private boolean destinationReached;
     // used for animating navigation
     private int currNodeIndex;
     // frame counter for frames elapsed while traversing current edge
@@ -34,6 +36,8 @@ public class MapDisplay extends JPanel {
     private int totalFramesThisEdge;
     // coordinates of pointer
     private float currentX, currentY;
+    // degrees to rotate pointer
+    private float pointerAngle; // todo
     // street name of edge being traversed
     private String currentStreetName;
     // directions for getting to the next node from the current one
@@ -51,7 +55,7 @@ public class MapDisplay extends JPanel {
     public MapDisplay(Map map) {
         setPreferredSize(new Dimension(200, 200));
         this.map = map;
-        path = new Stack<>();
+        path = new LinkedList<>();
         ActionListener repaint = new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 update();
@@ -62,45 +66,86 @@ public class MapDisplay extends JPanel {
         timer.start();
     }
 
+    // updates all fields and pointer
     public void update() {
         if (navigating) {
-
+            if (framesThisEdge == totalFramesThisEdge) { // we have reached the next node
+                currNodeIndex++;
+                // check if destination has been reached
+                if (currNodeIndex == path.size() - 1) {
+                    destinationReached = true;
+                } else {
+                    // reset frame counters for this edge
+                    framesThisEdge = 0;
+                    totalFramesThisEdge = (int) calculateTime(path, currNodeIndex, currNodeIndex + 1) * FPS;
+                    // update all edge-relevant fields
+                    directions = getDirections(path, currNodeIndex);
+                    currentSpeedLimit = path.get(currNodeIndex).getEdge(path.get(currNodeIndex + 1)).getSpeedLimit();
+                    currentStreetName = path.get(currNodeIndex).getEdge(path.get(currNodeIndex + 1)).getStreetName();
+                }
+            }
+            if (!destinationReached) {
+                framesThisEdge++;
+                LocationNode last_edge = path.get(currNodeIndex);
+                LocationNode next_edge = path.get(currNodeIndex + 1);
+                Edge edge = last_edge.getEdge(next_edge);
+                //
+                currentX = (next_edge.getX() - last_edge.getX()) * (framesThisEdge / totalFramesThisEdge);
+                currentY = (next_edge.getY() - last_edge.getY()) * (framesThisEdge / totalFramesThisEdge);
+                distanceTravelled += edge.getSpeedLimit() / FPS;
+                distanceRemaining -= edge.getSpeedLimit() / FPS;
+                timeRemaining -= 1.0f / FPS;
+            }
         }
     }
 
+    // paints the map to the JPanel
     public void paintComponent(Graphics g) {
+        // draw the map with path
         map.drawClip(g, null, path);
+        if (navigating) {
+            g.setColor(Color.BLUE);
+            g.fillOval((int) currentX, (int) currentY, 10, 10);
+            g.drawString(directions, 100, 100);
+            g.drawString(currentX + "," + currentY, 0, 20);
+            g.drawString(distanceTravelled + "", 0, 40);
+            g.drawString(timeRemaining + "", 0, 60);
+            g.drawString(currentStreetName + "," + currentSpeedLimit, 0, 80);
+        }
     }
-    // sets the path to be used for navigation, if enabled.
-    // throws IllegalStateException if the path is changed while the Map is currently navigating
-    // (navigation must be turned off first) or if the path has less than two elements
-    public void setPath(List<LocationNode> path) throws IllegalStateException {
+
+    // gives a path of nodes to navigate and sets navigating to true.
+    // throws IllegalArgumentException if path has fewer than two nodes, path is invalid
+    // (nodes are not adjacent), or MapDisplay was previously navigating and had not been
+    // turned off
+    public void startNavigation(List<LocationNode> path) throws IllegalArgumentException {
         if (navigating) {
             throw new IllegalStateException("Navigating must be set to false before path may be changed");
         } else if (path == null || path.size() < 2) {
-            throw new IllegalStateException("Path must have at least two elements");
-        }
-    }
+            throw new IllegalArgumentException("Path must have at least two elements");
+        } else {
+            navigating = true;
+            this.path = path;
 
-    public void setNavigating(boolean navigating) throws IllegalStateException {
-        if (navigating && path == null || path.isEmpty()) {
-            throw new IllegalStateException("A path must be specified before navigation can begin");
-        } else if (navigating) {
             // calculate total distance and time to traverse path
             timeRemaining = calculateTime(path, 0, path.size() - 1);
             distanceRemaining = calculateDistance(path, 0, path.size() - 1);
+
             // set init values for starting navigation
             currNodeIndex = 0;
             framesThisEdge = 0;
-            totalFramesThisEdge = (int) calculateTime(path, 0, 1) / FPS;
+            totalFramesThisEdge = (int) (calculateTime(path, 0, 1) * FPS);
             currentX = path.get(0).getX();
             currentY = path.get(0).getY();
             currentStreetName = path.get(0).getEdge(path.get(1)).getStreetName();
             directions = getDirections(path, 0);
             distanceTravelled = 0;
         }
-        // update the variable
-        this.navigating = navigating;
+    }
+
+    // will stop drawing the path to the screen and animating navigation
+    public void stopNavigation() {
+        navigating = false;
     }
 
     // generates directions for the navigator from the current node index in the path
@@ -137,7 +182,7 @@ public class MapDisplay extends JPanel {
         } else {
             float time = 0;
             LocationNode a, b;
-            for (int i = 0; i < endIndex - 1; i++) {
+            for (int i = 0; i < endIndex; i++) {
                 a = path.get(i);
                 b = path.get(i + 1);
                 time += a.timeTo(b);
