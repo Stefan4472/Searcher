@@ -23,8 +23,8 @@ public class MapDisplay extends JPanel {
     private List<LocationNode> path;
     // whether map is navigating between nodes in the path
     private boolean navigating;
-
-    private float pathDistance, pathTime;
+    // screen dimensions
+    private int screenWidth, screenHeight;
 
     // set to true when destination of path has been reached (if navigating)
     private boolean destinationReached;
@@ -52,9 +52,11 @@ public class MapDisplay extends JPanel {
     // number of times to refresh map per second
     private static final int FPS = 40;
 
-    public MapDisplay(Map map) {
-        setPreferredSize(new Dimension(200, 200));
+    public MapDisplay(Map map, int screenWidth, int screenHeight) {
         this.map = map;
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
+        setPreferredSize(new Dimension(screenWidth, screenHeight));
         path = new LinkedList<>();
         ActionListener repaint = new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
@@ -71,12 +73,14 @@ public class MapDisplay extends JPanel {
         if (navigating) {
             if (framesThisEdge == totalFramesThisEdge) { // we have reached the next node
                 currNodeIndex++;
+                framesThisEdge = 0;
                 // check if destination has been reached
                 if (currNodeIndex == path.size() - 1) {
                     destinationReached = true;
-                } else {
+                    System.out.println("Destination Reached");
+                } else { // switch to navigating to next node
+                    System.out.println("Switched to node " + currNodeIndex);
                     // reset frame counters for this edge
-                    framesThisEdge = 0;
                     totalFramesThisEdge = (int) calculateTime(path, currNodeIndex, currNodeIndex + 1) * FPS;
                     // update all edge-relevant fields
                     directions = getDirections(path, currNodeIndex);
@@ -84,16 +88,21 @@ public class MapDisplay extends JPanel {
                     currentStreetName = path.get(currNodeIndex).getEdge(path.get(currNodeIndex + 1)).getStreetName();
                 }
             }
-            if (!destinationReached) {
+            if (!destinationReached) { // todo: issues with distance and time calculations
                 framesThisEdge++;
-                LocationNode last_edge = path.get(currNodeIndex);
-                LocationNode next_edge = path.get(currNodeIndex + 1);
-                Edge edge = last_edge.getEdge(next_edge);
-                //
-                currentX = (next_edge.getX() - last_edge.getX()) * (framesThisEdge / totalFramesThisEdge);
-                currentY = (next_edge.getY() - last_edge.getY()) * (framesThisEdge / totalFramesThisEdge);
-                distanceTravelled += edge.getSpeedLimit() / FPS;
-                distanceRemaining -= edge.getSpeedLimit() / FPS;
+                // get pointers to previous and next node, as well as edge being travelled
+                LocationNode last_node = path.get(currNodeIndex);
+                LocationNode next_node = path.get(currNodeIndex + 1);
+                Edge edge = last_node.getEdge(next_node);
+                // update pointer and all readout data based on frames travelled this edge / total frames to be travelled
+                float change_x = (next_node.getX() - last_node.getX()) * ((float) framesThisEdge / totalFramesThisEdge);
+                float change_y = (next_node.getY() - last_node.getY()) * ((float) framesThisEdge / totalFramesThisEdge);
+                currentX = last_node.getX() + change_x;
+                currentY = last_node.getY() + change_y;
+//                distanceTravelled += edge.getSpeedLimit() / FPS;
+//                distanceRemaining -= edge.getSpeedLimit() / FPS;
+                distanceTravelled += change_x + change_y;
+                distanceRemaining -= change_x - change_y;
                 timeRemaining -= 1.0f / FPS;
             }
         }
@@ -108,7 +117,7 @@ public class MapDisplay extends JPanel {
             g.fillOval((int) currentX, (int) currentY, 10, 10);
             g.drawString(directions, 100, 100);
             g.drawString(currentX + "," + currentY, 0, 20);
-            g.drawString(distanceTravelled + "", 0, 40);
+            g.drawString(distanceTravelled + "," + distanceRemaining, 0, 40);
             g.drawString(timeRemaining + "", 0, 60);
             g.drawString(currentStreetName + "," + currentSpeedLimit, 0, 80);
         }
@@ -130,6 +139,7 @@ public class MapDisplay extends JPanel {
             // calculate total distance and time to traverse path
             timeRemaining = calculateTime(path, 0, path.size() - 1);
             distanceRemaining = calculateDistance(path, 0, path.size() - 1);
+            System.out.println("Remaining: " + timeRemaining + "," + distanceRemaining);
 
             // set init values for starting navigation
             currNodeIndex = 0;
@@ -157,10 +167,11 @@ public class MapDisplay extends JPanel {
             LocationNode current = path.get(currNodeIndex);
             LocationNode approaching = path.get(currNodeIndex + 1);
             String direction = "Head ";
+            // figure out compass direction. Remember: canvas coordinates!
             if (approaching.getY() - current.getY() > 0) {
-                direction += "North";
-            } else if (approaching.getY() - current.getY() < 0) {
                 direction += "South";
+            } else if (approaching.getY() - current.getY() < 0) {
+                direction += "North";
             }
             if (approaching.getX() - current.getX() > 0) {
                 direction += "East";
@@ -201,7 +212,7 @@ public class MapDisplay extends JPanel {
         } else {
             int distance = 0;
             LocationNode a, b;
-            for (int i = 0; i < endIndex - 1; i++) {
+            for (int i = 0; i < endIndex; i++) {
                 a = path.get(i);
                 b = path.get(i + 1);
                 distance += a.getEdge(b).getDistance();

@@ -143,7 +143,7 @@ public class Map {
     public void drawClip(Graphics drawFrame, Rectangle2D clip, List<LocationNode> path) {
         // draw background
         drawFrame.setColor(backgroundColor);
-        drawFrame.fillRect(0, 0, 200, 200);
+        drawFrame.fillRect(clip.getX(), clip.getY(), clip.getX() + clip.getWidth(), clip.getY() + clip.getHeight());
 
         ((Graphics2D) drawFrame).setStroke(new BasicStroke(1));
 
