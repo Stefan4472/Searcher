@@ -144,28 +144,43 @@ public class Map {
     public void drawClip(Graphics drawFrame, Rect clip, List<LocationNode> path) {
         // draw background
         drawFrame.setColor(backgroundColor);
-        drawFrame.fillRect(clip.getX0(), clip.getY0(), clip.getX1(), clip.getY1());
+        drawFrame.fillRect(0, 0, clip.getWidth(), clip.getHeight());
+
+        // get the offset, the amount subtracted off each coordinate to draw it to the screen. This is to achieve a
+        // scrolling behavior as the clip changes
+        int offX = clip.getX0(), offY = clip.getY0();
 
         ((Graphics2D) drawFrame).setStroke(new BasicStroke(1));
 
         // traverse the nodes
-        for (LocationNode address : addresses.values()) {
-            // draw node
-            drawFrame.setColor(nodeColor);
-            drawFrame.fillOval(address.getX() - 5, address.getY() - 5, 10, 10);
+        for (LocationNode address : addresses.values()) { // todo: this will not draw edges from nodes that are off-screen
+            // check if the node is in the clip
+            if (clip.containsPoint(address.getX(), address.getY())) {
+                // draw node
+                drawFrame.setColor(nodeColor);
+                drawFrame.fillOval(address.getX() - 5 - offX, address.getY() - 5 - offY, 10, 10);
 
-            // draw edges
-            drawFrame.setColor(roadColor);
-            for (LocationNode neighbor : address.getNeighbors()) {
-                drawFrame.drawLine(address.getX(), address.getY(), neighbor.getX(), neighbor.getY());
+                // draw edges
+                drawFrame.setColor(roadColor);
+                for (LocationNode neighbor : address.getNeighbors()) {
+                    drawFrame.drawLine(address.getX() - offX, address.getY() - offY,
+                            neighbor.getX() - offX, neighbor.getY() - offY);
+                }
             }
         }
 
         // draw the edges between the nodes specified in path
         drawFrame.setColor(pathColor);
         ((Graphics2D) drawFrame).setStroke(new BasicStroke(2));
+        LocationNode node, next_node = path.get(0);
         for (int i = 0; i < path.size() - 1; i++) {
-            drawFrame.drawLine(path.get(i).getX(), path.get(i).getY(), path.get(i + 1).getX(), path.get(i + 1).getY());
+            node = next_node;
+            next_node = path.get(i + 1);
+            // draw edge only if one of the nodes is in the clip
+            if (clip.containsPoint(node.getX(), node.getY()) || clip.containsPoint(next_node.getX(), next_node.getY())) {
+                drawFrame.drawLine(node.getX() - offX, node.getY() - offY,
+                        next_node.getX() - offX, next_node.getY() - offY);
+            }
         }
     }
 }

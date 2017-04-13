@@ -16,6 +16,11 @@ public class Rect {
         this.height = height;
     }
 
+    // returns whether the given point (px, py) is within the bounds of this Rect
+    public boolean containsPoint(int px, int py) {
+        return px >= x0 && px <= getX1() && py >= y0 && py <= getY1();
+    }
+
     public int getWidth() {
         return width;
     }
