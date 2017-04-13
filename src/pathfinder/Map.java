@@ -21,8 +21,9 @@ import java.util.List;
  */
 public class Map {
 
-    // stores address, node pairs
+    // stores (address, node) pairs
     private HashMap<String, LocationNode> addresses = new HashMap<>();
+    //
     // number of edges
     private int numEdges;
 
@@ -140,10 +141,10 @@ public class Map {
     // within the boundaries of the clip, translating them to (0,0). // todo: clips
     // The path stack is a list of adjacent nodes that define a path in the order given.
     // Edges between the nodes in this list will be drawn in pathColor.
-    public void drawClip(Graphics drawFrame, Rectangle2D clip, List<LocationNode> path) {
+    public void drawClip(Graphics drawFrame, Rect clip, List<LocationNode> path) {
         // draw background
         drawFrame.setColor(backgroundColor);
-        drawFrame.fillRect(clip.getX(), clip.getY(), clip.getX() + clip.getWidth(), clip.getY() + clip.getHeight());
+        drawFrame.fillRect(clip.getX0(), clip.getY0(), clip.getX1(), clip.getY1());
 
         ((Graphics2D) drawFrame).setStroke(new BasicStroke(1));
 

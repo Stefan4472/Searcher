@@ -108,14 +108,29 @@ public class MapDisplay extends JPanel {
         }
     }
 
+    private Rect clip;
+    // used to calculate dimensions of text drawn by Graphics. Only one font is used.
+    private FontMetrics fontMetrics;
     // paints the map to the JPanel
     public void paintComponent(Graphics g) {
+        // calculate the clip. This is a Rect with width and height of the screen where (currentX, currentY) is at
+        // its center. todo: test, improve
+        clip = new Rect(Math.max(0, (int) currentX - screenWidth / 2), Math.max(0, (int) currentY - screenHeight / 2),
+                Math.max(screenWidth, (int) currentX + screenWidth / 2), Math.max(screenHeight, (int) currentY + screenHeight / 2));
         // draw the map with path
-        map.drawClip(g, null, path);
+        map.drawClip(g, clip, path);
+        // get fontMetrics if you haven't already
+        if (fontMetrics == null) {
+            fontMetrics = g.getFontMetrics();
+        }
+        // draw the layout
         if (navigating) {
             g.setColor(Color.BLUE);
-            g.fillOval((int) currentX, (int) currentY, 10, 10);
-            g.drawString(directions, 100, 100);
+            // draw the pointer
+            g.fillOval((int) currentX - 5, (int) currentY - 5, 10, 10);
+            // draw the directions centered in width and 2/3 of the way down the screen in height
+            g.drawString(directions, screenWidth / 2 - fontMetrics.stringWidth(directions) / 2,
+                    screenHeight * 2 / 3 + fontMetrics.getHeight());
             g.drawString(currentX + "," + currentY, 0, 20);
             g.drawString(distanceTravelled + "," + distanceRemaining, 0, 40);
             g.drawString(timeRemaining + "", 0, 60);
