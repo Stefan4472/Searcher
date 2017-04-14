@@ -1,7 +1,8 @@
 package pathfinder;
 
+import searcher.SearchFramework;
+
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.*;
 import java.util.List;
@@ -18,22 +19,66 @@ import java.util.List;
  * Second line states number of edges (e)
  * This is followed by n lines in the space-separated format "Address x-coordinate y-coordinate" // todo: give nodes ID plus address?
  * This is followed by e lines in the space-separated format "Address1 Address2 StreetName SpeedLimit"
+ *
+ * The Map functions as a SearchFramework, implementing methods that are used by the Searcher for pathfinding.
  */
-public class Map {
+public class Map implements SearchFramework<LocationNode> {
 
     // stores (address, node) pairs
     private HashMap<String, LocationNode> addresses = new HashMap<>();
     //
     // number of edges
     private int numEdges;
-
+    // node to be reached in goal state of navigation
+    private LocationNode goalNode;
     // empty constructor
     public Map() {
+    }
+
+    @Override // returns neighbors of given node
+    public List<LocationNode> getNeighbors(LocationNode node) {
+        return new LinkedList<>(node.getNeighbors()); // todo: improve? avoid object creation
+    }
+
+    @Override // returns edge cost to get from node1 to node2
+    public float getEdgeCost(LocationNode node1, LocationNode node2) {
+        return node1.getEdgeCost(node2);
+    }
+
+    @Override // heuristic used to guide A* search of the map. Uses straight-line distance to goal-node.
+    // throws IllegalStateException if no goalNode has been set todo: improve, factor in speed limits
+    public float getHeuristic(LocationNode node) throws IllegalStateException {
+        if (goalNode == null) {
+            throw new IllegalStateException("Map must have a goal set before it can be searched");
+        } else {
+            return node.straightDistanceTo(goalNode);
+        }
+    }
+
+    @Override // checks whether the given node is the goal state, i.e. the address we're searching for.
+    // does this by checking whether the addresses match up (addresses are assumed to be unique)
+    // throws IllegalStateException if goalNode hasn't been set
+    public boolean isGoal(LocationNode node) throws IllegalStateException {
+        if (goalNode == null) {
+            throw new IllegalStateException("Map must have a goal set before it can be searched");
+        } else {
+            return node.getAddress().equals(goalNode.getAddress());
+        }
     }
 
     // returns node with specified address
     public LocationNode getNode(String address) {
         return addresses.get(address);
+    }
+
+    // sets address of node we're searching for if we were to use a Searcher
+    // throws NoSuchElementException if there is no node for the given address
+    public void setGoal(String address) throws NoSuchElementException {
+        if (addresses.containsKey(address)) {
+            goalNode = addresses.get(address);
+        } else {
+            throw new NoSuchElementException("Given address \"" + address + "\" does not exist");
+        }
     }
 
     // creates node from given information and stores it
@@ -52,7 +97,7 @@ public class Map {
             LocationNode node1 = addresses.get(address1);
             LocationNode node2 = addresses.get(address2);
             // calculate distance between the nodes
-            float distance = node1.distanceTo(node2);
+            float distance = node1.straightDistanceTo(node2);
             node1.addNeighbor(addresses.get(address2), new Edge(distance, streetName, speedLimit));
             numEdges++;
         }
@@ -86,7 +131,7 @@ public class Map {
                 } else { // access specified nodes and set edge cost
                     node = addresses.get(line_tokens[0]);
                     node2 = addresses.get(line_tokens[1]);
-                    distance = node.distanceTo(node2);
+                    distance = node.straightDistanceTo(node2);
                     street_name = line_tokens[2];
                     speed_limit = Float.parseFloat(line_tokens[3]);
                     node.addNeighbor(node2, new Edge(distance, street_name, speed_limit));
@@ -138,7 +183,7 @@ public class Map {
     // The draw method draws a specified portion (clip) of the map onto the given Graphics object.
     // The clip is a rectangle, and will be translated to (0,0) of the drawFrame.
     // e.g. the clip is (70, 100, 100, 150). This method will draw any nodes and edges that fall
-    // within the boundaries of the clip, translating them to (0,0). // todo: clips
+    // within the boundaries of the clip, translating them to (0,0). // todo: clips. This may be drawing beyond the screen
     // The path stack is a list of adjacent nodes that define a path in the order given.
     // Edges between the nodes in this list will be drawn in pathColor.
     public void drawClip(Graphics drawFrame, Rect clip, List<LocationNode> path) {

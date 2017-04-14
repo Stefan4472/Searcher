@@ -2,6 +2,7 @@ package pathfinder;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Path2D;
 import java.util.LinkedList;
 import java.util.List;
 import java.awt.event.ActionEvent;
@@ -58,6 +59,7 @@ public class MapDisplay extends JPanel {
         this.screenHeight = screenHeight;
         setPreferredSize(new Dimension(screenWidth, screenHeight));
         path = new LinkedList<>();
+
         ActionListener repaint = new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 update();
@@ -77,6 +79,7 @@ public class MapDisplay extends JPanel {
                 // check if destination has been reached
                 if (currNodeIndex == path.size() - 1) {
                     destinationReached = true;
+                    directions = "Destination Reached";
                     System.out.println("Destination Reached");
                 } else { // switch to navigating to next node
                     System.out.println("Switched to node " + currNodeIndex);
@@ -126,11 +129,12 @@ public class MapDisplay extends JPanel {
         // draw the layout
         if (navigating) {
             g.setColor(Color.BLUE);
-            // draw the pointer
-            g.fillOval((int) currentX - 5, (int) currentY - 5, 10, 10);
+            // draw the pointer (with offset)
+            g.fillOval((int) currentX - 5 - clip.getX0(), (int) currentY - 5 - clip.getY0(), 10, 10);
             // draw the directions centered in width and 2/3 of the way down the screen in height
             g.drawString(directions, screenWidth / 2 - fontMetrics.stringWidth(directions) / 2,
                     screenHeight * 2 / 3 + fontMetrics.getHeight());
+            // draw the readouts along top-left of screen
             g.drawString(currentX + "," + currentY, 0, 20);
             g.drawString(distanceTravelled + "," + distanceRemaining, 0, 40);
             g.drawString(timeRemaining + "", 0, 60);

@@ -59,7 +59,7 @@ public class LocationNode extends Node {
     }
 
     // calculates straight-line distance between given nodes
-    public float distanceTo(LocationNode node2) {
+    public float straightDistanceTo(LocationNode node2) {
         return (float) Math.sqrt(
                 (double) (getX() - node2.getX()) * (getX() - node2.getX()) +
                         (getY() - node2.getY()) * (getY() - node2.getY()));

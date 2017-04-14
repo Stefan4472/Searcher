@@ -25,9 +25,8 @@ public class Main extends JPanel {
         try {
             Map map = new Map(args[0]);
             LocationNode start = map.getNode(args[1]);
-            LocationNode goal = map.getNode(args[2]);
-            Pathfinder pathfinder = new Pathfinder(goal);
-            Searcher<LocationNode> searcher = new Searcher<>(pathfinder);
+            map.setGoal(args[2]);
+            Searcher<LocationNode> searcher = new Searcher<>(map);
             List<LocationNode> path = searcher.runSearch(start);
             if (path == null) {
                 System.out.println("No path found");
