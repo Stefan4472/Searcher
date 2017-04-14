@@ -100,6 +100,6 @@ public class LocationNode extends Node {
 
     @Override // creates the String representation of the node
     public String toString() {
-        return address + " " + x + " " + y;
+        return address + "(" + x + "," + y + ")";
     }
 }

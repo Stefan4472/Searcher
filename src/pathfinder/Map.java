@@ -26,6 +26,8 @@ public class Map implements SearchFramework<LocationNode> {
 
     // stores (address, node) pairs
     private HashMap<String, LocationNode> addresses = new HashMap<>();
+    // stores MapSector with list of addresses contained in it
+    private HashMap<MapSector, List<String>> sectors = new HashMap<>();
     //
     // number of edges
     private int numEdges;
@@ -81,9 +83,17 @@ public class Map implements SearchFramework<LocationNode> {
         }
     }
 
-    // creates node from given information and stores it
+    // creates node from given information and stores it in addresses map. Also determines sector it is in and records
+    // that in the sectors map.
     public void addNode(String address, int x, int y) {
         addresses.put(address, new LocationNode(address, x, y));
+        MapSector sector = MapSector.getSector(addresses.get(address));
+        System.out.println(addresses.get(address) + " in sector " + sector);
+        if (!sectors.containsKey(sector)) {
+            sectors.put(sector, new LinkedList<>());
+        }
+        sectors.get(sector).add(address);
+        System.out.println(Arrays.toString(sectors.get(sector).toArray()));
     }
 
     // takes the two given addresses and creates an edge from address1 to address2 with the
@@ -121,13 +131,12 @@ public class Map implements SearchFramework<LocationNode> {
             float speed_limit, distance;
             int x, y;
             for (int i = 0; i < total_lines; i++) {
-                line_tokens = br.readLine().split(" ");
+                line_tokens = br.readLine().split(" "); // todo: use addEdge, addNode methods
                 if (i < num_nodes) { // create node and add to addresses
                     address = line_tokens[0];
                     x = Integer.parseInt(line_tokens[1]);
                     y = Integer.parseInt(line_tokens[2]);
-                    node = new LocationNode(address, x, y);
-                    addresses.put(address, node);
+                    addNode(address, x, y);
                 } else { // access specified nodes and set edge cost
                     node = addresses.get(line_tokens[0]);
                     node2 = addresses.get(line_tokens[1]);
@@ -197,19 +206,29 @@ public class Map implements SearchFramework<LocationNode> {
 
         ((Graphics2D) drawFrame).setStroke(new BasicStroke(1));
 
-        // traverse the nodes
-        for (LocationNode address : addresses.values()) { // todo: this will not draw edges from nodes that are off-screen
-            // check if the node is in the clip
-            if (clip.containsPoint(address.getX(), address.getY())) {
-                // draw node
-                drawFrame.setColor(nodeColor);
-                drawFrame.fillOval(address.getX() - 5 - offX, address.getY() - 5 - offY, 10, 10);
+        LocationNode node;
 
-                // draw edges
-                drawFrame.setColor(roadColor);
-                for (LocationNode neighbor : address.getNeighbors()) {
-                    drawFrame.drawLine(address.getX() - offX, address.getY() - offY,
-                            neighbor.getX() - offX, neighbor.getY() - offY);
+        // get the MapSectors intersected by the given clip
+        for (MapSector sector : MapSector.getIntersectedSectors(clip)) {
+            System.out.println("Queued Sector " + sector);
+            // traverse the nodes within each sector
+            if (sectors.containsKey(sector)) {
+                System.out.println("Drawing Sector " + sector);
+                for (String address : sectors.get(sector)) { // todo: this will not draw edges from nodes that are off-screen
+                    node = addresses.get(address);
+                    // check if the node is in the clip
+                    if (clip.containsPoint(node.getX(), node.getY())) {
+                        // draw node
+                        drawFrame.setColor(nodeColor);
+                        drawFrame.fillOval(node.getX() - 5 - offX, node.getY() - 5 - offY, 10, 10);
+
+                        // draw edges
+                        drawFrame.setColor(roadColor);
+                        for (LocationNode neighbor : node.getNeighbors()) {
+                            drawFrame.drawLine(node.getX() - offX, node.getY() - offY,
+                                    neighbor.getX() - offX, neighbor.getY() - offY);
+                        }
+                    }
                 }
             }
         }
@@ -217,7 +236,7 @@ public class Map implements SearchFramework<LocationNode> {
         // draw the edges between the nodes specified in path
         drawFrame.setColor(pathColor);
         ((Graphics2D) drawFrame).setStroke(new BasicStroke(2));
-        LocationNode node, next_node = path.get(0);
+        LocationNode next_node = path.get(0);
         for (int i = 0; i < path.size() - 1; i++) {
             node = next_node;
             next_node = path.get(i + 1);

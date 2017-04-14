@@ -7,11 +7,11 @@ import java.util.List;
  * Represents a square portion of the map. The map is broken up into a grid of these MapSectors, each of which has
  * a row and column index. Includes convenience methods for determining sector(s) a node, edge, or region would intersect.
  */
-public class MapSector {
+public class MapSector { // todo: lots of testing
 
     // width of every MapSector's bounds
     private static final int WIDTH = 300;
-    
+
     // index of this sector with respect to the map as a whole. Bounds are calculated as
     // (row * WIDTH, col * WIDTH, (row + 1) * WIDTH, (col + 1) * WIDTH)
     int row, col;
@@ -23,12 +23,12 @@ public class MapSector {
 
     // returns MapSector instance that the given node would be in
     // Uses getSector(int, int) method using node's coordinates
-    private MapSector getSector(LocationNode node) {
+    public static MapSector getSector(LocationNode node) {
         return getSector(node.getX(), node.getY());
     }
 
     // returns MapSector instance that the given coordinates would be in
-    private MapSector getSector(int x, int y) {
+    private static MapSector getSector(int x, int y) {
         return new MapSector(x / WIDTH, y / WIDTH);
     }
 
@@ -36,7 +36,7 @@ public class MapSector {
     // Accomplishes this by calculating the sectors of the top left and bottom right points.
     // If these are equal, the top left sector fits the whole region.Otherwise, we add all the sectors
     // from top_left(i,j) to bottom_right(i,j)
-    public List<MapSector> getIntersectedSectors(Rect region) {
+    public static List<MapSector> getIntersectedSectors(Rect region) {
         List<MapSector> intersected = new LinkedList<>();
         MapSector top_left = getSector(region.getX0(), region.getY0());
         MapSector bottom_right = getSector(region.getX1(), region.getY1());
@@ -57,7 +57,7 @@ public class MapSector {
     // returns list of all MapSectors that a path from node to node2 would intersect
     // Accomplishes this by building the Rect region from node to node2 and calling
     // getIntersectedSectors(Rect) on it.
-    public List<MapSector> getIntersectedSectors(LocationNode node, LocationNode node2) { // todo: testing
+    public static List<MapSector> getIntersectedSectors(LocationNode node, LocationNode node2) {
         return getIntersectedSectors(new Rect(node.getX(), node.getY(), node2.getX(), node2.getY()));
     }
 
@@ -74,5 +74,15 @@ public class MapSector {
 
     public boolean equalsSector(MapSector sector) {
         return row == sector.row && col == sector.col;
+    }
+
+    @Override // todo: may need to customize to ensure all that matters is row and col
+    public int hashCode() {
+        return hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Sector(" + row + "," + col + ")";
     }
 }
