@@ -84,9 +84,9 @@ public class MapDisplay extends JPanel {
                 } else { // switch to navigating to next node
                     System.out.println("Switched to node " + currNodeIndex);
                     // reset frame counters for this edge
-                    totalFramesThisEdge = (int) calculateTime(path, currNodeIndex, currNodeIndex + 1) * FPS;
+                    totalFramesThisEdge = (int) MapUtil.calculateTime(path, currNodeIndex, currNodeIndex + 1) * FPS;
                     // update all edge-relevant fields
-                    directions = getDirections(path, currNodeIndex);
+                    directions = MapUtil.getDirections(path, currNodeIndex);
                     currentSpeedLimit = path.get(currNodeIndex).getEdge(path.get(currNodeIndex + 1)).getSpeedLimit();
                     currentStreetName = path.get(currNodeIndex).getEdge(path.get(currNodeIndex + 1)).getStreetName();
                 }
@@ -156,18 +156,18 @@ public class MapDisplay extends JPanel {
             this.path = path;
 
             // calculate total distance and time to traverse path
-            timeRemaining = calculateTime(path, 0, path.size() - 1);
-            distanceRemaining = calculateDistance(path, 0, path.size() - 1);
+            timeRemaining = MapUtil.calculateTime(path, 0, path.size() - 1);
+            distanceRemaining = MapUtil.calculateDistance(path, 0, path.size() - 1);
             System.out.println("Remaining: " + timeRemaining + "," + distanceRemaining);
 
             // set init values for starting navigation
             currNodeIndex = 0;
             framesThisEdge = 0;
-            totalFramesThisEdge = (int) (calculateTime(path, 0, 1) * FPS);
+            totalFramesThisEdge = (int) (MapUtil.calculateTime(path, 0, 1) * FPS);
             currentX = path.get(0).getX();
             currentY = path.get(0).getY();
             currentStreetName = path.get(0).getEdge(path.get(1)).getStreetName();
-            directions = getDirections(path, 0);
+            directions = MapUtil.getDirections(path, 0);
             distanceTravelled = 0;
         }
     }
@@ -177,66 +177,5 @@ public class MapDisplay extends JPanel {
         navigating = false;
     }
 
-    // generates directions for the navigator from the current node index in the path
-    // to the next one. Example: "Head NorthEast along Sunset Ave."
-    private static String getDirections(List<LocationNode> path, int currNodeIndex) {
-        if (currNodeIndex == path.size() - 1) {
-            return "Destination Reached";
-        } else {
-            LocationNode current = path.get(currNodeIndex);
-            LocationNode approaching = path.get(currNodeIndex + 1);
-            String direction = "Head ";
-            // figure out compass direction. Remember: canvas coordinates!
-            if (approaching.getY() - current.getY() > 0) {
-                direction += "South";
-            } else if (approaching.getY() - current.getY() < 0) {
-                direction += "North";
-            }
-            if (approaching.getX() - current.getX() > 0) {
-                direction += "East";
-            } else if (approaching.getX() - current.getX() < 0) {
-                direction += "West";
-            }
-            direction += " along " + current.getEdge(approaching).getStreetName();
-            return direction;
-        }
-    }
 
-    // calculates time required to navigate from node at startIndex to node at endIndex along the given path (in seconds)
-    // throws IllegalArgumentException if startIndex > endIndex or either is out of range of the given path
-    private static float calculateTime(List<LocationNode> path, int startIndex, int endIndex) throws IllegalArgumentException{
-        if (startIndex > endIndex) {
-            throw new IllegalArgumentException("StartIndex can't be greater than EndIndex");
-        } else if (startIndex < 0 || endIndex < 0 || startIndex >= path.size() || endIndex >= path.size()) {
-            throw new IllegalArgumentException("Error: index out of path bounds");
-        } else {
-            float time = 0;
-            LocationNode a, b;
-            for (int i = 0; i < endIndex; i++) {
-                a = path.get(i);
-                b = path.get(i + 1);
-                time += a.timeTo(b);
-            }
-            return time;
-        }
-    }
-
-    // calculates distance to navigate from node at startIndex to node at endIndex along the given path (in pixels)
-    // throws IllegalArgumentException if startIndex > endIndex or either is out of range of the given path
-    private static int calculateDistance(List<LocationNode> path, int startIndex, int endIndex) throws IllegalArgumentException{
-        if (startIndex > endIndex) {
-            throw new IllegalArgumentException("StartIndex can't be greater than EndIndex");
-        } else if (startIndex < 0 || endIndex < 0 || startIndex >= path.size() || endIndex >= path.size()) {
-            throw new IllegalArgumentException("Error: index out of path bounds");
-        } else {
-            int distance = 0;
-            LocationNode a, b;
-            for (int i = 0; i < endIndex; i++) {
-                a = path.get(i);
-                b = path.get(i + 1);
-                distance += a.getEdge(b).getDistance();
-            }
-            return distance;
-        }
-    }
 }

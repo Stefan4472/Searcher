@@ -70,7 +70,7 @@ public class LocationNode extends Node {
     public float timeTo(LocationNode node2) {
         Edge edge = neighbors.get(node2);
         if (edge == null) {
-            return Integer.MAX_VALUE;
+            return Float.MAX_VALUE;
         } else {
             return edge.getDistance() / edge.getSpeedLimit();
         }

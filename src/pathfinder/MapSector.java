@@ -76,10 +76,10 @@ public class MapSector { // todo: lots of testing
         return row == sector.row && col == sector.col;
     }
 
-    @Override // todo: may need to customize to ensure all that matters is row and col
+    /*@Override // todo: may need to customize to ensure all that matters is row and col
     public int hashCode() {
         return hashCode();
-    }
+    }*/
 
     @Override
     public String toString() {

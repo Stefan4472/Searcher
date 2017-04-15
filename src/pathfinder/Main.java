@@ -23,7 +23,7 @@ public class Main extends JPanel {
             System.exit(0);
         }
         try {
-            Map map = new Map(args[0]);
+            Map map = MapUtil.loadMap(args[0]);
             LocationNode start = map.getNode(args[1]);
             map.setGoal(args[2]);
             Searcher<LocationNode> searcher = new Searcher<>(map);
