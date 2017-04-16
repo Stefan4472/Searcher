@@ -139,10 +139,8 @@ public class Map implements SearchFramework<LocationNode> {
 
         // get the MapSectors intersected by the given clip
         for (MapSector sector : MapSector.getIntersectedSectors(clip)) {
-            System.out.println("Queued Sector " + sector);
             // traverse the nodes within each sector
             if (sectors.containsKey(sector)) {
-                System.out.println("Drawing Sector " + sector);
                 for (String address : sectors.get(sector)) { // todo: this will not draw edges from nodes that are off-screen
                     node = addresses.get(address);
                     // check if the node is in the clip

@@ -63,7 +63,9 @@ public class MapSector { // todo: lots of testing
 
     @Override // returns true if given object is a MapSector with same row, col
     public boolean equals(Object object) {
-        if (object == null) {
+        if (this == object) {
+            return true;
+        } else if (object == null) {
             throw new NullPointerException("Can't be null");
         } else if (!(object instanceof MapSector)) {
             return false;
@@ -76,10 +78,12 @@ public class MapSector { // todo: lots of testing
         return row == sector.row && col == sector.col;
     }
 
-    /*@Override // todo: may need to customize to ensure all that matters is row and col
+    @Override // customized hashCode method to ensure MapSectors with same (row,col) will
+    // have same hashCode. This will ensure any instance of MapSector(i,j) can be used to
+    // retrieve the generic key MapSector(i,j) from a HashMap
     public int hashCode() {
-        return hashCode();
-    }*/
+        return 31 * row + col;
+    }
 
     @Override
     public String toString() {
