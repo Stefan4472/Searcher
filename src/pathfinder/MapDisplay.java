@@ -119,7 +119,7 @@ public class MapDisplay extends JPanel {
         // calculate the clip. This is a Rect with width and height of the screen where (currentX, currentY) is at
         // its center. todo: test, improve
         clip = new Rect(Math.max(0, (int) currentX - screenWidth / 2), Math.max(0, (int) currentY - screenHeight / 2),
-                Math.max(screenWidth, (int) currentX + screenWidth / 2), Math.max(screenHeight, (int) currentY + screenHeight / 2));
+                screenWidth, screenHeight);
         // draw the map with path
         map.drawClip(g, clip, path);
         // get fontMetrics if you haven't already
