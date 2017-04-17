@@ -88,7 +88,6 @@ public class Map implements SearchFramework<LocationNode> {
             sectors.put(sector, new LinkedList<>());
         }
         sectors.get(sector).add(address);
-        System.out.println(Arrays.toString(sectors.get(sector).toArray()));
     }
 
     // takes the two given addresses and creates an edge from address1 to address2 with the

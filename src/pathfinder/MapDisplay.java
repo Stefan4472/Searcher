@@ -97,15 +97,11 @@ public class MapDisplay extends JPanel {
                 LocationNode last_node = path.get(currNodeIndex);
                 LocationNode next_node = path.get(currNodeIndex + 1);
                 Edge edge = last_node.getEdge(next_node);
-                // update pointer and all readout data based on frames travelled this edge / total frames to be travelled
-                float change_x = (next_node.getX() - last_node.getX()) * ((float) framesThisEdge / totalFramesThisEdge);
-                float change_y = (next_node.getY() - last_node.getY()) * ((float) framesThisEdge / totalFramesThisEdge);
-                currentX = last_node.getX() + change_x;
-                currentY = last_node.getY() + change_y;
-//                distanceTravelled += edge.getSpeedLimit() / FPS;
-//                distanceRemaining -= edge.getSpeedLimit() / FPS;
-                distanceTravelled += change_x + change_y;
-                distanceRemaining -= change_x - change_y;
+                // calculate next x and y coordinates
+                currentX += (next_node.getX() - last_node.getX()) / (float) totalFramesThisEdge;
+                currentY += (next_node.getY() - last_node.getY()) / (float) totalFramesThisEdge;
+                distanceTravelled += edge.getDistance() / totalFramesThisEdge;
+                distanceRemaining -= edge.getDistance() / totalFramesThisEdge;
                 timeRemaining -= 1.0f / FPS;
             }
         }
@@ -135,10 +131,11 @@ public class MapDisplay extends JPanel {
             g.drawString(directions, screenWidth / 2 - fontMetrics.stringWidth(directions) / 2,
                     screenHeight * 2 / 3 + fontMetrics.getHeight());
             // draw the readouts along top-left of screen
-            g.drawString(currentX + "," + currentY, 0, 20);
-            g.drawString(distanceTravelled + "," + distanceRemaining, 0, 40);
-            g.drawString(timeRemaining + "", 0, 60);
-            g.drawString(currentStreetName + "," + currentSpeedLimit, 0, 80);
+            g.drawString("Current Coordinates: (" + (int) currentX + "," + (int) currentY + ")", 0, 20);
+            g.drawString("Distance Travelled: " + (int) distanceTravelled + "px", 0, 40);
+            g.drawString("Distance Remaining: " + (int) distanceRemaining + "px", 0, 60);
+            g.drawString("Time Remaining: " + timeRemaining + "s", 0, 80);
+            g.drawString("Travelling on " + currentStreetName + " (speed limit " + currentSpeedLimit + "px/s)", 0, 100);
         }
     }
 

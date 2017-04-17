@@ -127,11 +127,8 @@ public class MapUtil {
             throw new IllegalArgumentException("Error: index out of path bounds");
         } else {
             float time = 0;
-            LocationNode a, b;
-            for (int i = 0; i < endIndex; i++) {
-                a = path.get(i);
-                b = path.get(i + 1);
-                time += a.timeTo(b);
+            for (int i = startIndex; i < endIndex; i++) {
+                time += path.get(i).timeTo(path.get(i + 1));
             }
             return time;
         }
@@ -152,6 +149,7 @@ public class MapUtil {
                 b = path.get(i + 1);
                 distance += a.getEdge(b).getDistance();
             }
+            System.out.println("Distance from " + path.get(startIndex) + " to " + path.get(endIndex) + " is " + distance);
             return distance;
         }
     }
