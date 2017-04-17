@@ -1,5 +1,6 @@
 package pathfinder;
 
+import java.awt.*;
 import java.io.*;
 import java.util.HashMap;
 import java.util.List;
@@ -9,9 +10,19 @@ import java.util.List;
  */
 public class MapUtil {
 
-    // Constructs a Map from data in the specified file. Data must be structured in the correct way
-    // (see Map.java header). Throws IOException if file cannot be found.
-    // Throws IllegalArgumentException if contents of file cannot be parsed correctly
+    /* Constructs a Map from data in the specified file. Data must be structured in the following way:
+     *
+     * Map File Format:
+     * First line states number of nodes (n)
+     * Second line states number of edges (e)
+     * This is followed by n lines in the space-separated format "Address x-coordinate y-coordinate *shape-x0 shape-y0 shape-xf shape-yf shape-color* (optional)" // todo: give nodes ID plus address?
+     * This is followed by e lines in the space-separated format "Address1 Address2 StreetName SpeedLimit"
+     *
+     * The fields defining shape coordinates and color are optional.
+     *
+     * Throws IOException if file cannot be found.
+     * Throws IllegalArgumentException if contents of file cannot be parsed correctly
+     */
     public static Map loadMap(String fileName) throws IOException, IllegalArgumentException {
         Map map = new Map();
         try {
@@ -21,9 +32,7 @@ public class MapUtil {
             int total_lines = num_nodes + num_edges;
 
             String[] line_tokens;
-            LocationNode node, node2;
-            String address, street_name;
-            float speed_limit, distance;
+            String address;
             int x, y;
             for (int i = 0; i < total_lines; i++) {
                 line_tokens = br.readLine().split(" "); // todo: use addEdge, addNode methods
@@ -31,10 +40,20 @@ public class MapUtil {
                     address = line_tokens[0];
                     x = Integer.parseInt(line_tokens[1]);
                     y = Integer.parseInt(line_tokens[2]);
-                    map.addNode(address, x, y);
+                    Rect shape = null;
+                    Color color = null;
+                    // check if more tokens--in which case pase shape specifications
+                    if (line_tokens.length > 3) {
+                        shape = new Rect(
+                                Integer.parseInt(line_tokens[3]),
+                                Integer.parseInt(line_tokens[4]),
+                                Integer.parseInt(line_tokens[5]),
+                                Integer.parseInt(line_tokens[6])
+                                );
+                        color = Color.decode(line_tokens[7]);
+                    }
+                    map.addNode(address, x, y, shape, color);
                 } else { // access specified nodes and set edge cost
-                    node = map.getNode(line_tokens[0]);
-                    node2 = map.getNode(line_tokens[1]);
                     map.addEdge(line_tokens[0], line_tokens[1], line_tokens[2], Float.parseFloat(line_tokens[3]));
                 }
             }

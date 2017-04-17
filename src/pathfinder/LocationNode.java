@@ -1,14 +1,16 @@
 package pathfinder;
 
+import com.sun.istack.internal.Nullable;
 import searcher.Node;
 
-import java.util.Enumeration;
+import java.awt.*;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Set;
 
 /**
- * A Node used in
+ * A LocationNode represents a point on a map at specified coordinates (x,y). It has a unique address, a String,
+ * and a HashMap of Edges to any neighbors it may have connection to. It may optionally have a shape, a rectangle
+ * that may be drawn onto the map with the specified shapeColor.
  */
 public class LocationNode extends Node {
 
@@ -18,13 +20,39 @@ public class LocationNode extends Node {
     private String address;
     // nodes accessible via this node. Key is neighbor, value is edge.
     private HashMap<LocationNode, Edge> neighbors;
+    // shape representation on the map
+    private Rect shape;
+    // shapeColor of shape on the map
+    private Color shapeColor;
 
-    // creates node with given address and coordinates
-    public LocationNode(String address, int x, int y) {
+    // node shapeColor
+    private static Color nodeColor = Color.BLACK;
+    // edge shapeColor
+    private static Color roadColor = Color.GRAY;
+    // radius of node (px)
+    private static int nodeRadius = 5;
+
+
+    public static void setNodeColor(Color nodeColor) {
+        LocationNode.nodeColor = nodeColor;
+    }
+
+    public static void setRoadColor(Color roadColor) {
+        LocationNode.roadColor = roadColor;
+    }
+
+    public static void setNodeRadius(int nodeRadius) {
+        LocationNode.nodeRadius = nodeRadius;
+    }
+
+    // creates node with given address and coordinates, as well as optional shape/color
+    public LocationNode(String address, int x, int y, @Nullable Rect shape, @Nullable Color shapeColor) {
         this.address = address;
         this.x = x;
         this.y = y;
         neighbors = new HashMap<>(1);
+        this.shape = shape;
+        this.shapeColor = shapeColor;
     }
 
     // adds the given node as a neighbor. This means adding it to the map of neighbors
@@ -76,6 +104,28 @@ public class LocationNode extends Node {
         }
     }
 
+    // draws the node onto the given graphics object with specified offsets.
+    // draws a circle centered at the node's coordinates. If shape != null will
+    // draw the shape with the specified shapeColor.
+    public void draw(Graphics graphics, int offsetX, int offsetY) { // todo: only draw within clip (shape and edge)
+        // draw node
+        graphics.setColor(nodeColor);
+        graphics.fillOval(getX() - nodeRadius - offsetX, getY() - nodeRadius - offsetY, 2 * nodeRadius, 2 * nodeRadius);
+
+        // draw edges
+        graphics.setColor(roadColor);
+        for (LocationNode neighbor : getNeighbors()) {
+            graphics.drawLine(getX() - offsetX, getY() - offsetY,
+                    neighbor.getX() - offsetX, neighbor.getY() - offsetY);
+        }
+
+        // draw shape (if has been set)
+        if (shape != null) {
+            graphics.setColor(shapeColor);
+            graphics.drawRect(shape.getX0() - offsetX, shape.getY0() - offsetY, shape.getWidth(), shape.getHeight());
+        }
+    }
+
     public int getX() {
         return x;
     }
@@ -88,6 +138,7 @@ public class LocationNode extends Node {
         return address;
     }
 
+    // equals method for comparing to other LocationNodes--just makes sure addresses are equal
     public boolean equals(LocationNode otherNode) {
         if (this == null || otherNode == null) {
             return false;

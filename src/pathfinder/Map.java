@@ -1,5 +1,6 @@
 package pathfinder;
 
+import com.sun.istack.internal.Nullable;
 import searcher.SearchFramework;
 
 import java.awt.*;
@@ -12,13 +13,8 @@ import java.util.List;
  * Each edge is one-way and defined by the two LocationNodes it spans. Each edge has a name and a
  * speedlimit (used in calculating edge costs).
  *
- * The Map can be read in from a file (in a determined format) and saved to a file.
- *
- * Map File Format:
- * First line states number of nodes (n)
- * Second line states number of edges (e)
- * This is followed by n lines in the space-separated format "Address x-coordinate y-coordinate" // todo: give nodes ID plus address?
- * This is followed by e lines in the space-separated format "Address1 Address2 StreetName SpeedLimit"
+ * The Map can be read in from a file (in a determined format) and saved to a file via the MapUtil loadMap
+ * and saveMap methods.
  *
  * The Map functions as a SearchFramework, implementing methods that are used by the Searcher for pathfinding.
  */
@@ -85,10 +81,9 @@ public class Map implements SearchFramework<LocationNode> {
 
     // creates node from given information and stores it in addresses map. Also determines sector it is in and records
     // that in the sectors map.
-    public void addNode(String address, int x, int y) {
-        addresses.put(address, new LocationNode(address, x, y));
+    public void addNode(String address, int x, int y, @Nullable Rect shape, @Nullable Color color) {
+        addresses.put(address, new LocationNode(address, x, y, shape, color));
         MapSector sector = MapSector.getSector(addresses.get(address));
-        System.out.println(addresses.get(address) + " in sector " + sector);
         if (!sectors.containsKey(sector)) {
             sectors.put(sector, new LinkedList<>());
         }
@@ -114,8 +109,8 @@ public class Map implements SearchFramework<LocationNode> {
     }
 
     private Color backgroundColor = Color.GREEN;
-    private Color nodeColor = Color.BLACK;
-    private Color roadColor = Color.GRAY;
+//    private Color nodeColor = Color.BLACK;
+//    private Color roadColor = Color.GRAY;
     private Color pathColor = Color.BLUE;
 
     // The draw method draws a specified portion (clip) of the map onto the given Graphics object.
@@ -145,16 +140,17 @@ public class Map implements SearchFramework<LocationNode> {
                     node = addresses.get(address);
                     // check if the node is in the clip
                     if (clip.containsPoint(node.getX(), node.getY())) {
-                        // draw node
-                        drawFrame.setColor(nodeColor);
-                        drawFrame.fillOval(node.getX() - 5 - offX, node.getY() - 5 - offY, 10, 10);
-
-                        // draw edges
-                        drawFrame.setColor(roadColor);
-                        for (LocationNode neighbor : node.getNeighbors()) {
-                            drawFrame.drawLine(node.getX() - offX, node.getY() - offY,
-                                    neighbor.getX() - offX, neighbor.getY() - offY);
-                        }
+                        node.draw(drawFrame, offX, offY);
+//                        // draw node
+//                        drawFrame.setColor(nodeColor);
+//                        drawFrame.fillOval(node.getX() - 5 - offX, node.getY() - 5 - offY, 10, 10);
+//
+//                        // draw edges
+//                        drawFrame.setColor(roadColor);
+//                        for (LocationNode neighbor : node.getNeighbors()) {
+//                            drawFrame.drawLine(node.getX() - offX, node.getY() - offY,
+//                                    neighbor.getX() - offX, neighbor.getY() - offY);
+//                        }
                     }
                 }
             }
