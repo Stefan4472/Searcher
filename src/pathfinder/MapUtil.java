@@ -94,8 +94,8 @@ public class MapUtil {
         return false;
     }
     // generates directions for the navigator from the current node index in the path
-    // to the next one. Example: "Head NorthEast along Sunset Ave."
-    public static String getDirections(List<LocationNode> path, int currNodeIndex) {
+    // to the next one. Example: "Head NorthEast along Sunset Ave." Map object is used to look up the Edge
+    public static String getDirections(List<LocationNode> path, int currNodeIndex, Map map) {
         if (currNodeIndex == path.size() - 1) {
             return "Destination Reached";
         } else {
@@ -113,14 +113,15 @@ public class MapUtil {
             } else if (approaching.getX() - current.getX() < 0) {
                 direction += "West";
             }
-            direction += " along " + current.getEdge(approaching).getStreetName();
+            direction += " along " + map.getEdge(current, approaching).getStreetName();
             return direction;
         }
     }
 
-    // calculates time required to navigate from node at startIndex to node at endIndex along the given path (in seconds)
-    // throws IllegalArgumentException if startIndex > endIndex or either is out of range of the given path
-    public static float calculateTime(List<LocationNode> path, int startIndex, int endIndex) throws IllegalArgumentException{
+    // calculates time required to navigate from node at startIndex to node at endIndex along the given path (in seconds).
+    // throws IllegalArgumentException if startIndex > endIndex or either is out of range of the given path.
+    // uses Map object to look up edges.
+    public static float calculateTime(List<LocationNode> path, int startIndex, int endIndex, Map map) throws IllegalArgumentException{
         if (startIndex > endIndex) {
             throw new IllegalArgumentException("StartIndex can't be greater than EndIndex");
         } else if (startIndex < 0 || endIndex < 0 || startIndex >= path.size() || endIndex >= path.size()) {
@@ -128,26 +129,24 @@ public class MapUtil {
         } else {
             float time = 0;
             for (int i = startIndex; i < endIndex; i++) {
-                time += path.get(i).timeTo(path.get(i + 1));
+                time += map.getEdge(path.get(i), path.get(i + 1)).getTime();
             }
             return time;
         }
     }
 
-    // calculates distance to navigate from node at startIndex to node at endIndex along the given path (in pixels)
-    // throws IllegalArgumentException if startIndex > endIndex or either is out of range of the given path
-    public static int calculateDistance(List<LocationNode> path, int startIndex, int endIndex) throws IllegalArgumentException{
+    // calculates distance to navigate from node at startIndex to node at endIndex along the given path (in pixels).
+    // throws IllegalArgumentException if startIndex > endIndex or either is out of range of the given path.
+    // Uses the given Map object to look up edges in the path.
+    public static int calculateDistance(List<LocationNode> path, int startIndex, int endIndex, Map map) throws IllegalArgumentException{
         if (startIndex > endIndex) {
             throw new IllegalArgumentException("StartIndex can't be greater than EndIndex");
         } else if (startIndex < 0 || endIndex < 0 || startIndex >= path.size() || endIndex >= path.size()) {
             throw new IllegalArgumentException("Error: index out of path bounds");
         } else {
             int distance = 0;
-            LocationNode a, b;
             for (int i = 0; i < endIndex; i++) {
-                a = path.get(i);
-                b = path.get(i + 1);
-                distance += a.getEdge(b).getDistance();
+                distance += map.getEdge(path.get(i), path.get(i + 1)).getDistance();
             }
             System.out.println("Distance from " + path.get(startIndex) + " to " + path.get(endIndex) + " is " + distance);
             return distance;

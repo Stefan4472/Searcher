@@ -84,11 +84,11 @@ public class MapDisplay extends JPanel {
                 } else { // switch to navigating to next node
                     System.out.println("Switched to node " + currNodeIndex);
                     // reset frame counters for this edge
-                    totalFramesThisEdge = (int) MapUtil.calculateTime(path, currNodeIndex, currNodeIndex + 1) * FPS;
+                    totalFramesThisEdge = (int) MapUtil.calculateTime(path, currNodeIndex, currNodeIndex + 1, map) * FPS;
                     // update all edge-relevant fields
-                    directions = MapUtil.getDirections(path, currNodeIndex);
-                    currentSpeedLimit = path.get(currNodeIndex).getEdge(path.get(currNodeIndex + 1)).getSpeedLimit();
-                    currentStreetName = path.get(currNodeIndex).getEdge(path.get(currNodeIndex + 1)).getStreetName();
+                    directions = MapUtil.getDirections(path, currNodeIndex, map);
+                    currentSpeedLimit = map.getEdge(path.get(currNodeIndex), path.get(currNodeIndex + 1)).getSpeedLimit();
+                    currentStreetName = map.getEdge(path.get(currNodeIndex), path.get(currNodeIndex + 1)).getStreetName();
                 }
             }
             if (!destinationReached) { // todo: issues with distance and time calculations
@@ -96,13 +96,14 @@ public class MapDisplay extends JPanel {
                 // get pointers to previous and next node, as well as edge being travelled
                 LocationNode last_node = path.get(currNodeIndex);
                 LocationNode next_node = path.get(currNodeIndex + 1);
-                Edge edge = last_node.getEdge(next_node);
+                Edge edge = map.getEdge(last_node, next_node);
                 // calculate next x and y coordinates
                 currentX += (next_node.getX() - last_node.getX()) / (float) totalFramesThisEdge;
                 currentY += (next_node.getY() - last_node.getY()) / (float) totalFramesThisEdge;
                 distanceTravelled += edge.getDistance() / totalFramesThisEdge;
                 distanceRemaining -= edge.getDistance() / totalFramesThisEdge;
                 timeRemaining -= 1.0f / FPS;
+                System.out.println(timeRemaining + "," + (1.0 / FPS));
             }
         }
     }
@@ -153,18 +154,18 @@ public class MapDisplay extends JPanel {
             this.path = path;
 
             // calculate total distance and time to traverse path
-            timeRemaining = MapUtil.calculateTime(path, 0, path.size() - 1);
-            distanceRemaining = MapUtil.calculateDistance(path, 0, path.size() - 1);
+            timeRemaining = MapUtil.calculateTime(path, 0, path.size() - 1, map);
+            distanceRemaining = MapUtil.calculateDistance(path, 0, path.size() - 1, map);
             System.out.println("Remaining: " + timeRemaining + "," + distanceRemaining);
 
             // set init values for starting navigation
             currNodeIndex = 0;
             framesThisEdge = 0;
-            totalFramesThisEdge = (int) (MapUtil.calculateTime(path, 0, 1) * FPS);
+            totalFramesThisEdge = (int) (MapUtil.calculateTime(path, 0, 1, map) * FPS);
             currentX = path.get(0).getX();
             currentY = path.get(0).getY();
-            currentStreetName = path.get(0).getEdge(path.get(1)).getStreetName();
-            directions = MapUtil.getDirections(path, 0);
+            currentStreetName = map.getEdge(path.get(0), path.get(1)).getStreetName();
+            directions = MapUtil.getDirections(path, 0, map);
             distanceTravelled = 0;
         }
     }

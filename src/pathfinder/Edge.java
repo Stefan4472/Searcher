@@ -1,7 +1,8 @@
 package pathfinder;
 
 /**
- * Stores information about an edge between two LocationNodes: distance, street name, and speed limit.
+ * Stores information about an edge between two addresses: distance, street name, and speed limit. Can be one way,
+ * in which case travel is only permitted
  */
 public class Edge {
 
@@ -25,5 +26,10 @@ public class Edge {
 
     public float getSpeedLimit() {
         return speedLimit;
+    }
+
+    // returns time to travel across this edge
+    public float getTime() {
+        return distance / speedLimit;
     }
 }

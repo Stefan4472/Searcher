@@ -58,7 +58,7 @@ public class Searcher<T extends Node> {
                         unVisitedNodes.add(neighbor);
                     }
                 }
-                visitedNodes.put(next_min, next_min.getPriorityVal());
+                visitedNodes.put(next_min, next_min.getPriorityVal()); // todo: move this to before search of neighbors?
                 return search();
             }
         }

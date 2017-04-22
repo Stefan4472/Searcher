@@ -7,11 +7,12 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represents a street map in coordinate space. Each node is indexed by its address in the addresses HashMap.
- * Each edge is one-way and defined by the two LocationNodes it spans. Each edge has a name and a
- * speedlimit (used in calculating edge costs).
+ * Each edge is defined by the two addresses it spans. Two addresses can define at most one edge. Each edge has a
+ * name and a speedlimit (used in calculating edge costs).
  *
  * The Map can be read in from a file (in a determined format) and saved to a file via the MapUtil loadMap
  * and saveMap methods.
@@ -24,6 +25,8 @@ public class Map implements SearchFramework<LocationNode> {
     private HashMap<String, LocationNode> addresses = new HashMap<>();
     // stores MapSector with list of addresses contained in it
     private HashMap<MapSector, List<String>> sectors = new HashMap<>();
+    // stores all edges in the map. Key is an AddressTuple, value is an Edge object
+    private HashMap<AddressTuple, Edge> edges = new HashMap<>();
     //
     // number of edges
     private int numEdges;
@@ -34,13 +37,35 @@ public class Map implements SearchFramework<LocationNode> {
     }
 
     @Override // returns neighbors of given node
-    public List<LocationNode> getNeighbors(LocationNode node) {
-        return new LinkedList<>(node.getNeighbors()); // todo: improve? avoid object creation
+    public List<LocationNode> getNeighbors(LocationNode node) { // todo: performance?
+        return node.getNeighbors().stream()
+                .map(address -> addresses.get(address))
+                .collect(Collectors.toList());
     }
 
-    @Override // returns edge cost to get from node1 to node2
+    // looks up edge corresponding to the two given LocationNodes, converting them into an AddressTuple for use
+    // with getEdge(AddressTuple). Throws NoSuchElementException if no such edge exists.
+    public Edge getEdge(LocationNode node1, LocationNode node2) throws NoSuchElementException {
+        return getEdge(new AddressTuple(node1.getAddress(), node2.getAddress()));
+    }
+
+    // looks up edge corresponding to given AddressTuple. Throws NoSuchElementException if none exists
+    public Edge getEdge(AddressTuple endNodes) throws NoSuchElementException {
+        if (!edges.containsKey(endNodes)) {
+            throw new NoSuchElementException("No Such Edge Exists");
+        } else {
+            return edges.get(endNodes);
+        }
+    }
+
+    @Override // returns edge cost to get from node1 to node2 (time)
     public float getEdgeCost(LocationNode node1, LocationNode node2) {
-        return node1.getEdgeCost(node2);
+        Edge edge = edges.get(new AddressTuple(node1.getAddress(), node2.getAddress()));
+        if (edge == null) { // return max value if no edge exists between the two
+            return Float.MAX_VALUE;
+        } else {
+            return edge.getDistance() / edge.getSpeedLimit();
+        }
     }
 
     @Override // heuristic used to guide A* search of the map. Uses straight-line distance to goal-node.
@@ -85,13 +110,14 @@ public class Map implements SearchFramework<LocationNode> {
         addresses.put(address, new LocationNode(address, x, y, shape, color));
         MapSector sector = MapSector.getSector(addresses.get(address));
         if (!sectors.containsKey(sector)) {
-            sectors.put(sector, new LinkedList<>());
+            sectors.put(sector, new LinkedList<>()); // todo: shapes hashmap and HashMap<Sector, List<address>> shapes
         }
         sectors.get(sector).add(address);
     }
 
-    // takes the two given addresses and creates an edge from address1 to address2 with the
-    // given properties. Throws NullPointerException if node specified by address doesn't exist.
+    // takes the two given addresses. Registers the existence of the edge under an AddressTuple in the edges HashMap.
+    // Pairs this with an Edge object built with the given streetName and speedLimit. Throws NullPointerException if
+    // an address is encountered that hasn't already been registered via addNode().
     public void addEdge(String address1, String address2, String streetName, float speedLimit) throws NullPointerException {
         if (!addresses.containsKey(address1)) {
             throw new NullPointerException("The given address \"" + address1 + "\" is invalid");
@@ -100,9 +126,7 @@ public class Map implements SearchFramework<LocationNode> {
         } else {
             LocationNode node1 = addresses.get(address1);
             LocationNode node2 = addresses.get(address2);
-            // calculate distance between the nodes
-            float distance = node1.straightDistanceTo(node2);
-            node1.addNeighbor(addresses.get(address2), new Edge(distance, streetName, speedLimit));
+            edges.put(new AddressTuple(address1, address2), new Edge(node1.straightDistanceTo(node2), streetName, speedLimit));
             numEdges++;
         }
     }

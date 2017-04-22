@@ -4,12 +4,12 @@ import com.sun.istack.internal.Nullable;
 import searcher.Node;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
 
 /**
  * A LocationNode represents a point on a map at specified coordinates (x,y). It has a unique address, a String,
- * and a HashMap of Edges to any neighbors it may have connection to. It may optionally have a shape, a rectangle
+ * and a list of addresses of neighbors it connects to. It may optionally have a shape, a rectangle
  * that may be drawn onto the map with the specified shapeColor.
  */
 public class LocationNode extends Node {
@@ -18,8 +18,8 @@ public class LocationNode extends Node {
     private int x, y;
     // node's address
     private String address;
-    // nodes accessible via this node. Key is neighbor, value is edge.
-    private HashMap<LocationNode, Edge> neighbors;
+    // addresses accessible to this node
+    private List<String> neighbors;
     // shape representation on the map
     private Rect shape;
     // shapeColor of shape on the map
@@ -50,41 +50,27 @@ public class LocationNode extends Node {
         this.address = address;
         this.x = x;
         this.y = y;
-        neighbors = new HashMap<>(1);
+        neighbors = new LinkedList<>();
         this.shape = shape;
         this.shapeColor = shapeColor;
     }
 
-    // adds the given node as a neighbor. This means adding it to the map of neighbors
-    // along with the given edge, which stores useful data
-    public void addNeighbor(LocationNode neighbor, Edge edge) throws NullPointerException {
-        if (neighbor == null) {
-            throw new NullPointerException("Neighbor can't be null");
-        } else {
-            neighbors.put(neighbor, edge);
-        }
+    // adds the given node as a neighbor. This means adding it to the list of neighbors
+    public void addNeighbor(String neighborAddress) {
+        neighbors.add(neighborAddress);
     }
 
     // returns set of all LocationNodes that this node has edges to
-    public Set<LocationNode> getNeighbors() {
-        return neighbors.keySet();
-    }
-
-    // returns edge to neighbor. Throws NullPointerException if there is no edge to the specified neighbor
-    public Edge getEdge(LocationNode neighbor) {
-        if (!neighbors.containsKey(neighbor)) {
-            throw new NullPointerException("No edge between this node and given neighbor");
-        } else {
-            return neighbors.get(neighbor);
-        }
+    public List<String> getNeighbors() {
+        return neighbors;
     }
 
     // returns edge cost from this node to the given one
     // edge cost is calculated as the time it takes to get to the neighbor,
     // i.e. distance / speedLimit of the edge
-    public float getEdgeCost(LocationNode neighbor) {
-        return timeTo(neighbor);
-    }
+//    public float getEdgeCost(LocationNode neighbor) {
+//        return timeTo(neighbor);
+//    }
 
     // calculates straight-line distance between given nodes
     public float straightDistanceTo(LocationNode node2) {
@@ -95,21 +81,21 @@ public class LocationNode extends Node {
 
     // calculates time (in seconds) to travel to given node along edge between them
     // returns Integer.MAX_VALUE if no such path exists
-    public float timeTo(LocationNode node2) {
+    /*public float timeTo(LocationNode node2) {
         Edge edge = neighbors.get(node2);
         if (edge == null) {
             return Float.MAX_VALUE;
         } else {
             return edge.getDistance() / edge.getSpeedLimit();
         }
-    }
+    }*/
 
     // draws the node onto the given graphics object with specified offsets.
     // draws a circle centered at the node's coordinates. If shape != null will
     // draw the shape with the specified shapeColor.
     public void draw(Graphics graphics, int offsetX, int offsetY) { // todo: only draw within clip (shape and edge)
         // draw node
-        graphics.setColor(nodeColor);
+        /*graphics.setColor(nodeColor);
         graphics.fillOval(getX() - nodeRadius - offsetX, getY() - nodeRadius - offsetY, 2 * nodeRadius, 2 * nodeRadius);
 
         // draw edges
@@ -123,7 +109,7 @@ public class LocationNode extends Node {
         if (shape != null) {
             graphics.setColor(shapeColor);
             graphics.drawRect(shape.getX0() - offsetX, shape.getY0() - offsetY, shape.getWidth(), shape.getHeight());
-        }
+        }*/
     }
 
     public int getX() {
