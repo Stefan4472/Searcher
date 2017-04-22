@@ -48,10 +48,10 @@ public class AddressTuple {
     public int hashCode() {
         int hash = 0;
         for (int i = 0; i < address1.length(); i++) {
-            hash += 13 * address1.charAt(i);
+            hash = 13 * hash + address1.charAt(i);
         }
         for (int i = 0; i < address2.length(); i++) {
-            hash += 13 * address2.charAt(i);
+            hash += 13 * hash + address2.charAt(i);
         }
         return hash;
     }

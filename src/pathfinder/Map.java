@@ -131,7 +131,7 @@ public class Map implements SearchFramework<LocationNode> {
             node2.addNeighbor(address1);
             AddressTuple tuple = new AddressTuple(address1, address2);
             edges.put(tuple, new Edge(node1.straightDistanceTo(node2), streetName, speedLimit));
-            
+
             // determine which Sectors this edge intersects and register these in the sectorEdges HashMap
             List<MapSector> intersected = MapSector.getIntersectedSectors(node1, node2);
             for (MapSector sector : intersected) {
@@ -145,9 +145,10 @@ public class Map implements SearchFramework<LocationNode> {
     }
 
     private Color backgroundColor = Color.GREEN;
-//    private Color nodeColor = Color.BLACK;
-//    private Color roadColor = Color.GRAY;
+    private Color nodeColor = Color.BLACK;
+    private Color roadColor = Color.GRAY;
     private Color pathColor = Color.BLUE;
+    private int nodeRadius = 5;
 
     // The draw method draws a specified portion (clip) of the map onto the given Graphics object.
     // The clip is a rectangle, and will be translated to (0,0) of the drawFrame.
@@ -162,55 +163,56 @@ public class Map implements SearchFramework<LocationNode> {
 
         // get the offset, the amount subtracted off each coordinate to draw it to the screen. This is to achieve a
         // scrolling behavior as the clip changes
-        int offX = clip.getX0(), offY = clip.getY0();
+        int offsetX = clip.getX0(), offsetY = clip.getY0();
 
         ((Graphics2D) drawFrame).setStroke(new BasicStroke(1));
 
-        LocationNode node;
+        LocationNode node1, node2;
 
         // get the MapSectors intersected by the given clip
         for (MapSector sector : MapSector.getIntersectedSectors(clip)) {
-            // traverse the nodes within each sector
+            // draw the nodes in each sector
             if (sectorNodes.containsKey(sector)) {
+                drawFrame.setColor(nodeColor);
                 for (String address : sectorNodes.get(sector)) { // todo: this will not draw edges from nodes that are off-screen
-                    node = addresses.get(address);
+                    node1 = addresses.get(address);
                     // check if the node is in the clip
-                    if (clip.containsPoint(node.getX(), node.getY())) {
+                    if (clip.containsPoint(node1.getX(), node1.getY())) {
                         // draws the node onto the given graphics object with specified offsets.
-                        // draws a circle centered at the node's coordinates. If shape != null will
-                        // draw the shape with the specified shapeColor.
-                            // draw node
-//                        drawFrame.setColor(nodeColor);
-//                        drawFrame.fillOval(getX() - nodeRadius - offsetX, getY() - nodeRadius - offsetY, 2 * nodeRadius, 2 * nodeRadius);
-//
-//                         draw edges
-//                        drawFrame.setColor(roadColor);
-//                        for (LocationNode neighbor : getNeighbors()) {
-//                            drawFrame.drawLine(getX() - offsetX, getY() - offsetY,
-//                                    neighbor.getX() - offsetX, neighbor.getY() - offsetY);
-                        }
-
-                        // draw shape (if has been set)
+                        // draws a circle of nodeRadius centered at the node's coordinates (minus offsets)
+                        drawFrame.fillOval(node1.getX() - nodeRadius - offsetX, node1.getY() - nodeRadius - offsetY, 2 * nodeRadius, 2 * nodeRadius);
+                    }
+                }
+            }
+            // draw the edges in each sector
+            if (sectorEdges.containsKey(sector)) {
+                drawFrame.setColor(roadColor);
+                for (AddressTuple address_tuple : sectorEdges.get(sector)) {
+                    node1 = addresses.get(address_tuple.getAddress1());
+                    node2 = addresses.get(address_tuple.getAddress2());
+                    drawFrame.drawLine(node1.getX() - offsetX, node1.getY() - offsetY,
+                            node2.getX() - offsetX, node2.getY() - offsetY);
+                }
+            }
+            // draw shape (if has been set)
 //                        if (shape != null) {
 //                            drawFrame.setColor(shapeColor);
 //                            drawFrame.drawRect(shape.getX0() - offsetX, shape.getY0() - offsetY, shape.getWidth(), shape.getHeight());
 //                        }
-                    }
+
+            // draw the edges between the nodes specified in path
+            drawFrame.setColor(pathColor);
+            ((Graphics2D) drawFrame).setStroke(new BasicStroke(2));
+            LocationNode next_node = path.get(0);
+            for (int i = 0; i < path.size() - 1; i++) {
+                node1 = next_node;
+                next_node = path.get(i + 1);
+                // draw edge only if one of the nodes is in the clip
+                if (clip.containsPoint(node1.getX(), node1.getY()) || clip.containsPoint(next_node.getX(), next_node.getY())) {
+                    drawFrame.drawLine(node1.getX() - offsetX, node1.getY() - offsetY,
+                            next_node.getX() - offsetX, next_node.getY() - offsetY);
                 }
             }
-
-        // draw the edges between the nodes specified in path
-        /*drawFrame.setColor(pathColor);
-        ((Graphics2D) drawFrame).setStroke(new BasicStroke(2));
-        LocationNode next_node = path.get(0);
-        for (int i = 0; i < path.size() - 1; i++) {
-            node = next_node;
-            next_node = path.get(i + 1);
-            // draw edge only if one of the nodes is in the clip
-            if (clip.containsPoint(node.getX(), node.getY()) || clip.containsPoint(next_node.getX(), next_node.getY())) {
-                drawFrame.drawLine(node.getX() - offX, node.getY() - offY,
-                        next_node.getX() - offX, next_node.getY() - offY);
-            }
-        }*/
+        }
     }
 }
