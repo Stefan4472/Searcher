@@ -4,7 +4,6 @@ import com.sun.istack.internal.Nullable;
 import searcher.SearchFramework;
 
 import java.awt.*;
-import java.io.*;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,11 +22,12 @@ public class Map implements SearchFramework<LocationNode> {
 
     // stores (address, node) pairs
     private HashMap<String, LocationNode> addresses = new HashMap<>();
-    // stores MapSector with list of addresses contained in it
-    private HashMap<MapSector, List<String>> sectors = new HashMap<>();
     // stores all edges in the map. Key is an AddressTuple, value is an Edge object
     private HashMap<AddressTuple, Edge> edges = new HashMap<>();
-    //
+    // stores MapSector with list of addresses contained in it
+    private HashMap<MapSector, List<String>> sectorNodes = new HashMap<>();
+    // stores MapSector with list of AddressTuples defining Edges that pass through the sector
+    private HashMap<MapSector, List<AddressTuple>> sectorEdges = new HashMap<>();
     // number of edges
     private int numEdges;
     // node to be reached in goal state of navigation
@@ -64,7 +64,7 @@ public class Map implements SearchFramework<LocationNode> {
         if (edge == null) { // return max value if no edge exists between the two
             return Float.MAX_VALUE;
         } else {
-            return edge.getDistance() / edge.getSpeedLimit();
+            return edge.getTime();
         }
     }
 
@@ -105,28 +105,41 @@ public class Map implements SearchFramework<LocationNode> {
     }
 
     // creates node from given information and stores it in addresses map. Also determines sector it is in and records
-    // that in the sectors map.
+    // that in the sectorNodes map.
     public void addNode(String address, int x, int y, @Nullable Rect shape, @Nullable Color color) {
         addresses.put(address, new LocationNode(address, x, y, shape, color));
         MapSector sector = MapSector.getSector(addresses.get(address));
-        if (!sectors.containsKey(sector)) {
-            sectors.put(sector, new LinkedList<>()); // todo: shapes hashmap and HashMap<Sector, List<address>> shapes
+        if (!sectorNodes.containsKey(sector)) {
+            sectorNodes.put(sector, new LinkedList<>()); // todo: shapes hashmap and HashMap<Sector, List<address>> shapes
         }
-        sectors.get(sector).add(address);
+        sectorNodes.get(sector).add(address);
     }
 
     // takes the two given addresses. Registers the existence of the edge under an AddressTuple in the edges HashMap.
     // Pairs this with an Edge object built with the given streetName and speedLimit. Throws NullPointerException if
     // an address is encountered that hasn't already been registered via addNode().
     public void addEdge(String address1, String address2, String streetName, float speedLimit) throws NullPointerException {
-        if (!addresses.containsKey(address1)) {
+        LocationNode node1 = addresses.get(address1);
+        LocationNode node2 = addresses.get(address2);
+        if (node1 == null) {
             throw new NullPointerException("The given address \"" + address1 + "\" is invalid");
-        } else if  (!addresses.containsKey(address2)) {
+        } else if (node2 == null) {
             throw new NullPointerException("The given address \"" + address2 + "\" is invalid");
         } else {
-            LocationNode node1 = addresses.get(address1);
-            LocationNode node2 = addresses.get(address2);
-            edges.put(new AddressTuple(address1, address2), new Edge(node1.straightDistanceTo(node2), streetName, speedLimit));
+            // update both nodes neighbor lists as well as the edges HashMap
+            node1.addNeighbor(address2);
+            node2.addNeighbor(address1);
+            AddressTuple tuple = new AddressTuple(address1, address2);
+            edges.put(tuple, new Edge(node1.straightDistanceTo(node2), streetName, speedLimit));
+            
+            // determine which Sectors this edge intersects and register these in the sectorEdges HashMap
+            List<MapSector> intersected = MapSector.getIntersectedSectors(node1, node2);
+            for (MapSector sector : intersected) {
+                if (!sectorEdges.containsKey(sector)) {
+                    sectorEdges.put(sector, new LinkedList<>()); // todo: shapes hashmap and HashMap<Sector, List<address>> shapes
+                }
+                sectorEdges.get(sector).add(tuple);
+            }
             numEdges++;
         }
     }
@@ -158,29 +171,36 @@ public class Map implements SearchFramework<LocationNode> {
         // get the MapSectors intersected by the given clip
         for (MapSector sector : MapSector.getIntersectedSectors(clip)) {
             // traverse the nodes within each sector
-            if (sectors.containsKey(sector)) {
-                for (String address : sectors.get(sector)) { // todo: this will not draw edges from nodes that are off-screen
+            if (sectorNodes.containsKey(sector)) {
+                for (String address : sectorNodes.get(sector)) { // todo: this will not draw edges from nodes that are off-screen
                     node = addresses.get(address);
                     // check if the node is in the clip
                     if (clip.containsPoint(node.getX(), node.getY())) {
-                        node.draw(drawFrame, offX, offY);
-//                        // draw node
+                        // draws the node onto the given graphics object with specified offsets.
+                        // draws a circle centered at the node's coordinates. If shape != null will
+                        // draw the shape with the specified shapeColor.
+                            // draw node
 //                        drawFrame.setColor(nodeColor);
-//                        drawFrame.fillOval(node.getX() - 5 - offX, node.getY() - 5 - offY, 10, 10);
+//                        drawFrame.fillOval(getX() - nodeRadius - offsetX, getY() - nodeRadius - offsetY, 2 * nodeRadius, 2 * nodeRadius);
 //
-//                        // draw edges
+//                         draw edges
 //                        drawFrame.setColor(roadColor);
-//                        for (LocationNode neighbor : node.getNeighbors()) {
-//                            drawFrame.drawLine(node.getX() - offX, node.getY() - offY,
-//                                    neighbor.getX() - offX, neighbor.getY() - offY);
+//                        for (LocationNode neighbor : getNeighbors()) {
+//                            drawFrame.drawLine(getX() - offsetX, getY() - offsetY,
+//                                    neighbor.getX() - offsetX, neighbor.getY() - offsetY);
+                        }
+
+                        // draw shape (if has been set)
+//                        if (shape != null) {
+//                            drawFrame.setColor(shapeColor);
+//                            drawFrame.drawRect(shape.getX0() - offsetX, shape.getY0() - offsetY, shape.getWidth(), shape.getHeight());
 //                        }
                     }
                 }
             }
-        }
 
         // draw the edges between the nodes specified in path
-        drawFrame.setColor(pathColor);
+        /*drawFrame.setColor(pathColor);
         ((Graphics2D) drawFrame).setStroke(new BasicStroke(2));
         LocationNode next_node = path.get(0);
         for (int i = 0; i < path.size() - 1; i++) {
@@ -191,6 +211,6 @@ public class Map implements SearchFramework<LocationNode> {
                 drawFrame.drawLine(node.getX() - offX, node.getY() - offY,
                         next_node.getX() - offX, next_node.getY() - offY);
             }
-        }
+        }*/
     }
 }

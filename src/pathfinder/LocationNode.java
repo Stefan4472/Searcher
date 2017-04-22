@@ -79,39 +79,6 @@ public class LocationNode extends Node {
                         (getY() - node2.getY()) * (getY() - node2.getY()));
     }
 
-    // calculates time (in seconds) to travel to given node along edge between them
-    // returns Integer.MAX_VALUE if no such path exists
-    /*public float timeTo(LocationNode node2) {
-        Edge edge = neighbors.get(node2);
-        if (edge == null) {
-            return Float.MAX_VALUE;
-        } else {
-            return edge.getDistance() / edge.getSpeedLimit();
-        }
-    }*/
-
-    // draws the node onto the given graphics object with specified offsets.
-    // draws a circle centered at the node's coordinates. If shape != null will
-    // draw the shape with the specified shapeColor.
-    public void draw(Graphics graphics, int offsetX, int offsetY) { // todo: only draw within clip (shape and edge)
-        // draw node
-        /*graphics.setColor(nodeColor);
-        graphics.fillOval(getX() - nodeRadius - offsetX, getY() - nodeRadius - offsetY, 2 * nodeRadius, 2 * nodeRadius);
-
-        // draw edges
-        graphics.setColor(roadColor);
-        for (LocationNode neighbor : getNeighbors()) {
-            graphics.drawLine(getX() - offsetX, getY() - offsetY,
-                    neighbor.getX() - offsetX, neighbor.getY() - offsetY);
-        }
-
-        // draw shape (if has been set)
-        if (shape != null) {
-            graphics.setColor(shapeColor);
-            graphics.drawRect(shape.getX0() - offsetX, shape.getY0() - offsetY, shape.getWidth(), shape.getHeight());
-        }*/
-    }
-
     public int getX() {
         return x;
     }
@@ -134,6 +101,8 @@ public class LocationNode extends Node {
             return false;
         }
     }
+
+    // todo: override equals and hashcode?
 
     @Override // creates the String representation of the node
     public String toString() {

@@ -91,7 +91,7 @@ public class MapDisplay extends JPanel {
                     currentStreetName = map.getEdge(path.get(currNodeIndex), path.get(currNodeIndex + 1)).getStreetName();
                 }
             }
-            if (!destinationReached) { // todo: issues with distance and time calculations
+            if (!destinationReached) {
                 framesThisEdge++;
                 // get pointers to previous and next node, as well as edge being travelled
                 LocationNode last_node = path.get(currNodeIndex);
@@ -102,8 +102,7 @@ public class MapDisplay extends JPanel {
                 currentY += (next_node.getY() - last_node.getY()) / (float) totalFramesThisEdge;
                 distanceTravelled += edge.getDistance() / totalFramesThisEdge;
                 distanceRemaining -= edge.getDistance() / totalFramesThisEdge;
-                timeRemaining -= 1.0f / FPS;
-                System.out.println(timeRemaining + "," + (1.0 / FPS));
+                timeRemaining -= 1.0f / FPS; // todo: not accurate enough. Check startTime and endTime. Maybe find an arrivalTime (ms) and count down to it
             }
         }
     }

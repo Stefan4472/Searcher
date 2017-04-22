@@ -24,7 +24,7 @@ public class Main extends JPanel {
         }
         try {
             Map map = MapUtil.loadMap(args[0]);
-            LocationNode start = map.getNode(args[1]); // todo: clean up
+            LocationNode start = map.getNode(args[1]); // todo: clean up. Searcher<String>?
             map.setGoal(args[2]);
             Searcher<LocationNode> searcher = new Searcher<>(map);
             List<LocationNode> path = searcher.runSearch(start);
