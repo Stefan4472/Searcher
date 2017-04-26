@@ -204,10 +204,12 @@ public class Map implements SearchFramework<LocationNode> {
             drawFrame.setColor(pathColor);
             ((Graphics2D) drawFrame).setStroke(new BasicStroke(2));
             LocationNode next_node = path.get(0);
+            AddressTuple edge_addresses;
             for (int i = 0; i < path.size() - 1; i++) {
                 node1 = next_node;
                 next_node = path.get(i + 1);
-                // draw edge only if one of the nodes is in the clip
+                edge_addresses = new AddressTuple(node1.getAddress(), next_node.getAddress());
+                // draw edge only if one of the nodes is in the clip todo: clip edge drawings
                 if (clip.containsPoint(node1.getX(), node1.getY()) || clip.containsPoint(next_node.getX(), next_node.getY())) {
                     drawFrame.drawLine(node1.getX() - offsetX, node1.getY() - offsetY,
                             next_node.getX() - offsetX, next_node.getY() - offsetY);

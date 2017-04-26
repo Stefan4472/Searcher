@@ -131,7 +131,7 @@ public class MapDisplay extends JPanel {
             g.drawString(directions, screenWidth / 2 - fontMetrics.stringWidth(directions) / 2,
                     screenHeight * 2 / 3 + fontMetrics.getHeight());
             // draw the readouts along top-left of screen
-            g.drawString("Current Coordinates: (" + (int) currentX + "," + (int) currentY + ")", 0, 20);
+            g.drawString("Current Coordinates: (" + (int) Math.ceil(currentX) + "," + (int) Math.ceil(currentY) + ")", 0, 20);
             g.drawString("Distance Travelled: " + (int) distanceTravelled + "px", 0, 40);
             g.drawString("Distance Remaining: " + (int) distanceRemaining + "px", 0, 60);
             g.drawString("Time Remaining: " + timeRemaining + "s", 0, 80);

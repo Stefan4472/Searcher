@@ -65,13 +65,6 @@ public class LocationNode extends Node {
         return neighbors;
     }
 
-    // returns edge cost from this node to the given one
-    // edge cost is calculated as the time it takes to get to the neighbor,
-    // i.e. distance / speedLimit of the edge
-//    public float getEdgeCost(LocationNode neighbor) {
-//        return timeTo(neighbor);
-//    }
-
     // calculates straight-line distance between given nodes
     public float straightDistanceTo(LocationNode node2) {
         return (float) Math.sqrt(
@@ -91,18 +84,27 @@ public class LocationNode extends Node {
         return address;
     }
 
-    // equals method for comparing to other LocationNodes--just makes sure addresses are equal
-    public boolean equals(LocationNode otherNode) {
-        if (this == null || otherNode == null) {
-            return false;
-        } else if (address.equals(otherNode.getAddress())) {
+    @Override // equals method requires another LocationNode. Addresses must be equal
+    public boolean equals(Object other) {
+        if (this == other) {
             return true;
-        } else {
+        } else if (other == null) {
+            throw new NullPointerException();
+        } else if (!(other instanceof LocationNode)) {
             return false;
+        } else {
+            return address.equals(((LocationNode) other).getAddress());
         }
     }
 
-    // todo: override equals and hashcode?
+    @Override // hashes string using standard method. 13 is used as the base because addresses might be long
+    public int hashCode() {
+        int value = 0;
+        for (int i = 0; i < address.length(); i++) {
+            value = 13 * value + address.charAt(i);
+        }
+        return value;
+    }
 
     @Override // creates the String representation of the node
     public String toString() {
