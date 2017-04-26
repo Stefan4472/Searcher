@@ -52,14 +52,19 @@ public class MapUtil {
                                 );
                         color = Color.decode(line_tokens[7]);
                     }
-                    map.addNode(address, x, y, shape, color);
+                    map.addNode(address, x, y);
                 } else { // access specified nodes and set edge cost
                     map.addEdge(line_tokens[0], line_tokens[1], line_tokens[2], Float.parseFloat(line_tokens[3]));
                 }
             }
             br.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Couldn't read specified file \"" + fileName + "\"");
+            System.exit(0);
+        } catch (NumberFormatException|NullPointerException|ArrayIndexOutOfBoundsException e) {
+            System.out.print("Error parsing file. Ensure correct number of addresses and edges have been declared,\n" +
+                    "and that they are defined in the proper way.");
+            System.exit(0);
         }
         return map;
     }

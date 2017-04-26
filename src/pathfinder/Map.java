@@ -28,10 +28,9 @@ public class Map implements SearchFramework<LocationNode> {
     private HashMap<MapSector, List<String>> sectorNodes = new HashMap<>();
     // stores MapSector with list of AddressTuples defining Edges that pass through the sector
     private HashMap<MapSector, List<AddressTuple>> sectorEdges = new HashMap<>();
-    // number of edges
-    private int numEdges;
     // node to be reached in goal state of navigation
     private LocationNode goalNode;
+
     // empty constructor
     public Map() {
     }
@@ -106,13 +105,17 @@ public class Map implements SearchFramework<LocationNode> {
 
     // creates node from given information and stores it in addresses map. Also determines sector it is in and records
     // that in the sectorNodes map.
-    public void addNode(String address, int x, int y, @Nullable Rect shape, @Nullable Color color) {
-        addresses.put(address, new LocationNode(address, x, y, shape, color));
-        MapSector sector = MapSector.getSector(addresses.get(address));
-        if (!sectorNodes.containsKey(sector)) {
-            sectorNodes.put(sector, new LinkedList<>()); // todo: shapes hashmap and HashMap<Sector, List<address>> shapes
+    public void addNode(String address, int x, int y) throws DuplicateKeyException {
+        if (addresses.containsKey(address)) {
+            throw new DuplicateKeyException("Key \"" + address + "\" has already been registered and cannot be added twice");
+        } else {
+            addresses.put(address, new LocationNode(address, x, y, null, null));
+            MapSector sector = MapSector.getSector(addresses.get(address));
+            if (!sectorNodes.containsKey(sector)) {
+                sectorNodes.put(sector, new LinkedList<>()); // todo: shapes hashmap and HashMap<Sector, List<address>> shapes
+            }
+            sectorNodes.get(sector).add(address);
         }
-        sectorNodes.get(sector).add(address);
     }
 
     // takes the two given addresses. Registers the existence of the edge under an AddressTuple in the edges HashMap.
@@ -140,7 +143,6 @@ public class Map implements SearchFramework<LocationNode> {
                 }
                 sectorEdges.get(sector).add(tuple);
             }
-            numEdges++;
         }
     }
 
